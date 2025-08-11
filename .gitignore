@@ -1,0 +1,55 @@
+# Group by related, try to be as specific as possible
+# Remember that late matches overrides previous ones
+# Try to keep project specific stuff near the bottom
+
+# General/OS
+.DS_Store
+Thumbs.db
+Thumbs.db.meta
+Desktop.ini.meta
+
+# Unity
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+
+# Visual Studio Unity Generated
+/*.csproj
+/*.unityproj
+/*.sln
+/*.suo
+/*.tmp
+/*.user
+/*.userprefs
+/*.pidb
+/*.booproj
+/*.svd
+/*.pdb
+/*.opendb
+
+# Visual Studio cache directory
+.vs/
+
+# Jetbrains Rider
+# https://github.com/JetBrains/resharper-unity/issues/591#issuecomment-724120067
+.idea/
+*.DotSettings.user
+/Assets/Plugins/Editor/JetBrains*
+
+# Visual studio code
+.vscode/
+.history/
+
+# Gradle cache directory
+.gradle/
+
+# Unity3D Generated File On Crash Reports
+/sysinfo.txt
+
+# Put projects specific attributes below here
+.DS_Store

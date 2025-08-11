@@ -1,0 +1,214 @@
+# Group by related, order by text/binary then extension, try to be as specific as possible
+# Remember that late matches overrides previous ones
+# Try to keep most files with eol=lf unless problems arise
+# Try to keep project specific stuff near the bottom
+
+# Unity YAML-based asset files.
+[attr]unityyaml eol=lf linguist-generated
+
+# All binary files that should use Git LFS
+[attr]lfs -text filter=lfs diff=lfs merge=lfs
+
+# Default rule
+* text=auto eol=lf
+
+# Unity YAML 
+#   unityyamlmerge only works for scenes and prefabs, setup at https://docs.unity3d.com/Manual/SmartMerge.html
+*.anim unityyaml
+*.asset unityyaml
+*.clips unityyaml
+*.controller unityyaml
+*.flare unityyaml
+*.fontsettings unityyaml
+*.guiskin unityyaml
+*.ht unityyaml
+*.mask unityyaml
+*.mat unityyaml
+*.meta unityyaml
+*.overrideController unityyaml
+*.physicMaterial unityyaml
+*.physicMaterial2D unityyaml
+*.playable unityyaml
+*.prefab merge=unityyamlmerge unityyaml
+*.preset unityyaml
+*.renderTexture unityyaml
+*.shadervariants unityyaml
+*.spriteatlas unityyaml
+*.terrainlayer unityyaml
+*.unity merge=unityyamlmerge lockable unityyaml
+
+# Unity shader sources
+*.cginc eol=lf
+*.shader eol=lf
+
+# Unity UI Elements
+*.uss eol=lf
+*.uxml eol=lf
+
+# Unity scripts
+*.asmdef eol=lf
+*.asmref eol=lf
+*.cs eol=lf diff=csharp
+
+# Unity misc
+*.cubemap lfs
+*.unity[Pp]ackage lfs
+*LightingData*.asset lfs
+*LightmapSnapshot*.asset lfs
+*[Tt]errain.asset lfs
+*[Nn]av[Mm]esh.asset lfs
+
+# Overall dotnet
+*.csproj eol=crlf
+*.DotSettings eol=crlf
+*.props eol=crlf
+*.sln eol=crlf
+*.sln.template eol=crlf
+*.targets eol=crlf
+*.vcproj eol=crlf
+*.vcxproj eol=crlf
+*.vcxproj.filters eol=crlf
+*.xaml eol=crlf
+*.exe lfs
+*.ilk lfs
+*.mdb
+*.nupkg lfs
+*.pdb lfs
+
+# T4 templates requires crlf
+*.tt eol=crlf
+*.t4 eol=crlf
+*.ttinclude eol=crlf
+
+# Config/generic
+*.config eol=lf
+*.crt eol=lf
+*.csv eol=lf
+*.json eol=lf
+*.tsv eol=lf
+*.txt eol=lf
+*.[Xx][Mm][Ll] eol=lf
+
+# Xcode specific
+*.m eol=lf diff=objc
+*.mm eol=lf diff=objc
+*.modulemap eol=lf
+# plist can be xml or binary
+*.plist text=auto eol=lf
+*.storyboard eol=lf
+*.swift eol=lf
+Podfile.lock eol=lf
+*.bundle lfs
+*.ipa lfs
+
+# Gradle/java specific
+*.gradle eol=lf diff=java
+*.java eol=lf diff=java
+*.aab lfs
+*.aar lfs
+*.apk lfs
+*.jar lfs
+*.srcaar lfs
+
+# Misc scripts/source code
+*.bat eol=crlf
+*.c eol=lf diff=cpp
+*.cmd eol=lf eol=crlf
+*.command eol=lf
+*.cpp eol=lf diff=cpp
+*.go eol=lf diff=golang
+*.h eol=lf diff=cpp
+*.js eol=lf
+*.mel eol=lf
+*.pl eol=lf diff=perl
+*.py eol=lf diff=python
+*.rb eol=lf diff=ruby
+*.sh eol=lf
+Makefile eol=lf
+
+# Native libs
+*.a lfs
+*.dylib lfs
+*.so lfs
+
+# Docs
+*.css eol=lf diff=css
+*.html eol=lf diff=html
+*.markdown eol=lf
+*.md eol=lf
+*.chm lfs
+*.pdf lfs
+
+# Misc blobs
+*.7z lfs
+*.bin lfs
+*.bytes lfs
+*.bz2 lfs
+*.gz lfs
+*.lz4 lfs
+*.rar lfs
+*.tar lfs
+*.zip lfs
+
+# Images
+*.[Bb][Mm][Pp] lfs
+*.[Ee][Xx][Rr] lfs
+*.[Hh][Dd][Rr] lfs
+*.jpeg lfs
+*.[Jj][Pp][Gg] lfs
+*.[Pp][Nn][Gg] lfs
+*.[Pp][Ss][Dd] lfs
+*.[Tt][Gg][Aa] lfs
+*.[Tt][Ii][Ff] lfs
+*.tiff lfs
+
+# Meshes
+*.mtl eol=lf
+*.3[Dd][Ss] lfs
+*.abc lfs
+*.[Ff][Bb][Xx] lfs
+*.[Oo][Bb][Jj] lfs
+*.swatch lfs
+
+# Audio
+*.bnk lfs
+*.mp3 lfs
+*.ogg lfs
+*.wav lfs
+*.wem lfs
+
+# Video
+*.avi lfs
+*.m4v lfs
+*.mov lfs
+*.mp4 lfs
+*.wmv lfs
+
+# Fonts
+*.otf lfs
+*.ttf lfs
+
+# Unity specific files
+/ProjectSettings/*.keystore binary lockable
+/ProjectSettings/ProjectVersion.txt eol=lf lockable
+
+# Misc specific files
+.localization.lock eol=lf
+
+# Misc executable large binaries
+**/AkSoundEngine lfs 
+**/AkWaapiClient lfs
+**/anzu lfs
+**/Bolts lfs
+**/Crashlytics lfs
+**/Fabric lfs
+**/FBSDKCoreKit lfs
+**/FBSDKLoginKit lfs
+**/fccore lfs
+**/NormalsFittingTexture_dds lfs
+**/submit lfs
+**/UnityAds lfs
+**/upload-symbols lfs
+**/uploadDSYM lfs
+
+# Put projects specific attributes below here
