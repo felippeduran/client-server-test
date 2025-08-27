@@ -1,25 +1,29 @@
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
 
 namespace Presentation.Stats.Screens
 {
     public class StatsScreen : MonoBehaviour
     {
         [SerializeField] private Button closeButton;
-        
-        private void OnEnable()
+
+        public void Show()
         {
-            closeButton.onClick.AddListener(OnCloseButtonClicked);
+            gameObject.SetActive(true);
         }
 
-        private void OnDisable()
+        public void Hide()
         {
-            closeButton.onClick.RemoveAllListeners();
+            gameObject.SetActive(false);
         }
 
-        private void OnCloseButtonClicked()
+        public async UniTask OpenAsync(LevelStats[] stats, CancellationToken ct)
         {
-            
+            Show();
+            await closeButton.OnClickAsync(ct);
+            Hide();
         }
     }
 }

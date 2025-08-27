@@ -13,6 +13,12 @@ namespace Presentation.Main.Presenters
         public int CurrentLevelIndex { get; private set; }
 
         private int levelCount;
+
+        public void Setup(int currentLevel, int levelCount)
+        {
+            CurrentLevelIndex = currentLevel;
+            this.levelCount = levelCount;
+        }
         
         private void Awake()
         {

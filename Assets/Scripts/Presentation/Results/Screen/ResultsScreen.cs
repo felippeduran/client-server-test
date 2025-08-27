@@ -1,25 +1,25 @@
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
+using TMPro;
 
 namespace Presentation.Results.Screen
 {
     public class ResultsScreen : MonoBehaviour
     {
         [SerializeField] private Button continueButton;
-        
-        private void OnEnable()
-        {
-            continueButton.onClick.AddListener(OnContinueButtonClicked);
-        }
+        [SerializeField] private TMP_Text resultText;
 
-        private void OnDisable()
+        public async Task<bool> ShowAsync(bool won, CancellationToken ct)
         {
-            continueButton.onClick.RemoveAllListeners();
-        }
+            resultText.text = won ? "WIN" : "LOSE";
 
-        private void OnContinueButtonClicked()
-        {
-            
+            gameObject.SetActive(true);
+            await continueButton.OnClickAsync(ct);
+            gameObject.SetActive(false);
+            return true;
         }
     }
 }

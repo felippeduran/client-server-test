@@ -7,24 +7,14 @@ namespace Presentation.Main.Presenters
     {
         [SerializeField] private TextMeshProUGUI labelText;
 
-        public int Energy { get; private set; }
-        
-
-        public void GainEnergy(int value)
+        public void Setup(int energy)
         {
-            Energy += value;
-            UpdateText();
-        }
-        
-        public void ConsumeEnergy(int value)
-        {
-            Energy -= value;
-            UpdateText();
+            UpdateText(energy);
         }
 
-        private void UpdateText()
+        private void UpdateText(int energy)
         {
-            labelText.text = $"{Energy}";
+            labelText.text = $"{energy}";
         }
     }
 }

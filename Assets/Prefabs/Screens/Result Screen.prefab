@@ -275,6 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   continueButton: {fileID: 5900860741494303272}
+  resultText: {fileID: 1167360404998157409}
 --- !u!1 &8638774414472222523
 GameObject:
   m_ObjectHideFlags: 0

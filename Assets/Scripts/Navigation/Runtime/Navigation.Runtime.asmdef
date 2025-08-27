@@ -1,0 +1,17 @@
+{
+    "name": "Navigation.Runtime",
+    "rootNamespace": "Navigation.Runtime",
+    "references": [
+        "Presentation",
+        "Utilities.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

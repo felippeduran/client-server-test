@@ -1,0 +1,16 @@
+{
+    "name": "Networking.Runtime",
+    "rootNamespace": "Networking.Runtime",
+    "references": [
+        "Utilities.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

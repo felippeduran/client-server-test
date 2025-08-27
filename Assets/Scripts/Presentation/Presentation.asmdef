@@ -1,0 +1,19 @@
+{
+    "name": "Presentation",
+    "rootNamespace": "Presentation",
+    "references": [
+        "Features.Runtime",
+        "Utilities.Runtime",
+        "UniTask",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

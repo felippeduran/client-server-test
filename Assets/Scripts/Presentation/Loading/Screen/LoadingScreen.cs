@@ -11,5 +11,10 @@ namespace Presentation.Loading.Screen
         {
             loadingBarPresenter.SetProgress(0);
         }
+
+        public void SetProgress(float progress)
+        {
+            loadingBarPresenter.SetProgress(progress);
+        }
     }
 }
