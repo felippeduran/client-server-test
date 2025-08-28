@@ -42,6 +42,7 @@ public class EndLevelCommandTests
             {
                 LevelProgression = new LevelProgression
                 {
+                    CurrentLevel = 1,
                     Statistics = new SortedSet<LevelStats>(),
                 },
             },
@@ -213,6 +214,34 @@ public class EndLevelCommandTests
         command.Execute(playerState, configs);
 
         Assert.That(playerState.Persistent.Energy.CurrentAmount, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void TestEndCommand_WithPreviousLevelInProgress_ShouldNotChangeCurrentLevel()
+    {
+        var playerState = new PlayerState
+        {
+            Persistent = new PersistentState
+            {
+                LevelProgression = new LevelProgression
+                {
+                    CurrentLevel = 3,
+                    Statistics = new SortedSet<LevelStats>(),
+                },
+            },
+            Session = new SessionState { CurrentLevelId = 1 },
+        };
+
+        var configs = GetTestConfigs();
+
+        var command = new EndLevelCommand
+        {
+            Success = true,
+        };
+
+        command.Execute(playerState, configs);
+
+        Assert.That(playerState.Persistent.LevelProgression.CurrentLevel, Is.EqualTo(3));
     }
 
     Configs GetTestConfigs()

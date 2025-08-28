@@ -12,10 +12,14 @@ public class EndLevelCommand : ICommand
 
         var levelConfig = configs.Levels[currentLevelId];
 
-        var stats = new LevelStats { LevelId = currentLevelId };
-        if (state.Persistent.LevelProgression.Statistics.TryGetValue(stats, out stats))
+        if (!state.Persistent.LevelProgression.Statistics.TryGetValue(new LevelStats { LevelId = currentLevelId }, out var stats))
         {
-            state.Persistent.LevelProgression.Statistics.Remove(stats);
+            stats = new LevelStats {
+                LevelId = currentLevelId,
+                Wins = 0,
+                Losses = 0,
+                BestScore = 0,
+            };
         }
 
         if (Success && Score > stats.BestScore)
@@ -25,11 +29,15 @@ public class EndLevelCommand : ICommand
         stats.Wins += Success ? 1 : 0;
         stats.Losses += Success ? 0 : 1;
 
+        state.Persistent.LevelProgression.Statistics.Remove(new LevelStats { LevelId = currentLevelId });
         state.Persistent.LevelProgression.Statistics.Add(stats);
 
         if (Success)
         {
-            state.Persistent.LevelProgression.CurrentLevel = currentLevelId + 1;
+            if (currentLevelId == state.Persistent.LevelProgression.CurrentLevel)
+            {
+                state.Persistent.LevelProgression.CurrentLevel = currentLevelId + 1;
+            }
             state.Persistent.Energy.CurrentAmount += levelConfig.EnergyReward;
         }
 

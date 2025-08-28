@@ -13,7 +13,8 @@ namespace Presentation.Gameplay.Presenters
         [SerializeField] private float idleRollingSeconds;
         [SerializeField] private float faceChangeSeconds;
 
-        public int CurrentDiceNumber => currentDiceFace + 1;
+        public int CurrentDiceNumber { get; private set; }
+        public bool Rolling { get; private set; }
 
         private float idleRollingTimer;
         private float faceChangeTimer;
@@ -21,12 +22,19 @@ namespace Presentation.Gameplay.Presenters
 
         private void Awake()
         {
+            Init();
+        }
+
+        public void Init()
+        {
             currentDiceFace = 0;
             diceImage.sprite = diceFaceSprites[currentDiceFace];
+            CurrentDiceNumber = -1;
         }
 
         public async Task Roll(int targetFace)
         {
+            Rolling = true;
             idleRollingTimer = idleRollingSeconds;
             faceChangeTimer = faceChangeSeconds;
 
@@ -42,6 +50,9 @@ namespace Presentation.Gameplay.Presenters
                 NextDiceFace();
                 await Task.Yield();
             }
+
+            CurrentDiceNumber = currentDiceFace + 1;
+            Rolling = false;
         }
 
         private void NextDiceFace()

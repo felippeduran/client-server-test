@@ -1,13 +1,13 @@
 using System;
+using UnityEngine;
 
 public class CommandHandler
 {
     readonly IAccountStorage accountStorage;
 
-    [Serializable]
-    public class CommandArgs
+    public CommandHandler(IAccountStorage accountStorage)
     {
-        ICommand Command;
+        this.accountStorage = accountStorage;
     }
 
     [EndpointHandler]
@@ -24,17 +24,31 @@ public class CommandHandler
             return error;
         }
 
+        var playerState = new PlayerState
+        {
+            Persistent = persistentState,
+            Session = connState.SessionState,
+        };
+
         try
         {
-            command.Execute(new PlayerState
-            {
-                Persistent = persistentState,
-                Session = connState.SessionState,
-            }, ConfigsProvider.GetHardcodedConfigs());
+            Debug.Log($"Executing command server side: {command.GetType().Name}");
+            Debug.Log($"Server session state before: {playerState.Session.CurrentLevelId}");
+            Debug.Log($"Server Persistent state before: {playerState.Persistent.LevelProgression.Statistics.Count}");
+            command.Execute(playerState, ConfigsProvider.GetHardcodedConfigs());
+            Debug.Log($"Server session state after: {playerState.Session.CurrentLevelId}");
+            Debug.Log($"Server Persistent state after: {playerState.Persistent.LevelProgression.Statistics.Count}");
         }
         catch (MetagameException e)
         {
             return new Error { Message = e.Message };
+        }
+
+        connState.SessionState = playerState.Session;
+        error = accountStorage.SetPersistentState(connState.AccountId, playerState.Persistent);
+        if (error != null)
+        {
+            return error;
         }
 
         return null;

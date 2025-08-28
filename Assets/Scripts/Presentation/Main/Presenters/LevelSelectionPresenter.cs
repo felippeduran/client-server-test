@@ -16,14 +16,16 @@ namespace Presentation.Main.Presenters
 
         public void Setup(int currentLevel, int levelCount)
         {
-            CurrentLevelIndex = currentLevel;
+            // Ensure currentLevel is at least 1 and within valid range
+            CurrentLevelIndex = Mathf.Clamp(currentLevel, 1, levelCount);
             this.levelCount = levelCount;
+            UpdateText();
         }
         
         private void Awake()
         {
             levelCount = 1;
-            CurrentLevelIndex = 0;
+            CurrentLevelIndex = 1; // Start at level 1 instead of 0
             UpdateText();
         }
         
@@ -41,18 +43,21 @@ namespace Presentation.Main.Presenters
 
         private void UpdateText()
         {
-            labelText.text = $"Level {CurrentLevelIndex + 1}";
+            // CurrentLevelIndex is now one-based, so no need to add 1
+            labelText.text = $"Level {CurrentLevelIndex}";
         }
         
         private void OnLeftButtonClicked()
         {
-            CurrentLevelIndex = (CurrentLevelIndex + levelCount - 1) % levelCount;
+            // Cycle to previous level, ensuring we never go below 1
+            CurrentLevelIndex = CurrentLevelIndex == 1 ? levelCount : CurrentLevelIndex - 1;
             UpdateText();
         }
         
         private void OnRightButtonClicked()
         {
-            CurrentLevelIndex = (CurrentLevelIndex + 1) % levelCount;
+            // Cycle to next level, ensuring we cycle back to 1 when exceeding levelCount
+            CurrentLevelIndex = CurrentLevelIndex == levelCount ? 1 : CurrentLevelIndex + 1;
             UpdateText();
         }
     }

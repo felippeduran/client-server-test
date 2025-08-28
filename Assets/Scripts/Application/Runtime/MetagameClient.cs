@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 public class MetagameClient
@@ -10,9 +11,9 @@ public class MetagameClient
         this.client = client;
     }
 
-    public async Task<Error> AuthenticateAsync(Account account)
+    public async Task<Error> AuthenticateAsync(Account account, CancellationToken ct)
     {
-        var (_, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken });
+        var (_, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken }, ct);
         if (error != null)
         {
             return error;
@@ -21,9 +22,9 @@ public class MetagameClient
         return null;
     }
 
-    public async Task<(PlayerState, Error)> GetPlayerStateAsync()
+    public async Task<(PlayerState, Error)> GetPlayerStateAsync(CancellationToken ct)
     {
-        var (res, error) = await client.SendMessage<GetPlayerStateArgs, GetPlayerStateRes>("InitializationHandler/GetPlayerState", new GetPlayerStateArgs { });
+        var (res, error) = await client.SendMessage<GetPlayerStateArgs, GetPlayerStateRes>("InitializationHandler/GetPlayerState", new GetPlayerStateArgs { }, ct);
         if (error != null)
         {
             return (default, error);
@@ -32,9 +33,9 @@ public class MetagameClient
         return (res.PlayerState, null);
     }
 
-    public async Task<(Configs, Error)> GetConfigsAsync()
+    public async Task<(Configs, Error)> GetConfigsAsync(CancellationToken ct)
     {
-        var (res, error) = await client.SendMessage<GetConfigsArgs, GetConfigsRes>("InitializationHandler/GetConfigs", new GetConfigsArgs { });
+        var (res, error) = await client.SendMessage<GetConfigsArgs, GetConfigsRes>("InitializationHandler/GetConfigs", new GetConfigsArgs { }, ct);
         if (error != null)
         {
             return (default, error);
@@ -43,10 +44,10 @@ public class MetagameClient
         return (res.Configs, null);
     }
 
-    public async Task<((PlayerState, Configs), Error)> SynchronizeAsync()
+    public async Task<((PlayerState, Configs), Error)> SynchronizeAsync(CancellationToken ct)
     {
-        var stateTask = GetPlayerStateAsync();
-        var configsTask = GetConfigsAsync();
+        var stateTask = GetPlayerStateAsync(ct);
+        var configsTask = GetConfigsAsync(ct);
 
         await Task.WhenAll(stateTask, configsTask);
 

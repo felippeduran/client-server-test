@@ -4,6 +4,14 @@ using System;
 public struct Configs
 {
     public LevelConfig[] Levels;
+    public EnergyConfig Energy;
+}
+
+[Serializable]
+public struct EnergyConfig
+{
+    public int MaxEnergy;
+    public TimeSpan RechargeInterval;
 }
 
 [Serializable]
@@ -21,6 +29,7 @@ public static class ConfigsProvider
     {
         return new Configs
         {
+            Energy = new EnergyConfig { MaxEnergy = 50, RechargeInterval = TimeSpan.FromSeconds(5) },
             Levels = new LevelConfig[] {
                 new LevelConfig { },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 1, EnergyReward = 1 },

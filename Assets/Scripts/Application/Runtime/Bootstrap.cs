@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using Presentation.Main.Screen;
 using System.Linq;
 using System;
@@ -11,7 +10,7 @@ namespace Application.Runtime
     public class Bootstrap : MonoBehaviour
     {
         [SerializeField] ScreensLibrary screensLibrary;
-        [SerializeField] PlayerState stateDisplay;
+        [SerializeField] ConnectivityClientDecorator.Config connectivityConfig;
 
         private async void Start()
         {
@@ -20,71 +19,76 @@ namespace Application.Runtime
             var accountStorage = new InMemoryAccounts();
             var server = FakeServerFactory.CreateServer<ConnectionState>(new object[] {
                 new AuthenticationHandler(accountStorage),
-                new CommandHandler(),
+                new CommandHandler(accountStorage),
                 new InitializationHandler(accountStorage),
             });
-            var client = new FakeClient(server);
+
+            var client = new ConnectivityClientDecorator(connectivityConfig, new FakeClient(server));
+
+            var account = new Account { Id = Guid.NewGuid().ToString(), AccessToken = Guid.NewGuid().ToString() };
 
             var ct = UnityEngine.Application.exitCancellationToken;
             while (!ct.IsCancellationRequested)
             {
-                var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 screensLibrary.loadingScreen.gameObject.SetActive(true);
 
-                var (synchronized, exit) = await HandleConnectionAsync(client, cts.Token);
-                if (exit)
+                var (synchronized, error) = await HandleConnectionAsync(account, client, cts.Token);
+                if (error != null)
                 {
-                    return;
+                    client.Disconnect();
+                    await screensLibrary.errorScreen.ShowAsync(error.Message, cts.Token);
+                    continue;
                 }
 
-                stateDisplay = synchronized.player.State;
                 screensLibrary.loadingScreen.SetProgress(1);
                 screensLibrary.loadingScreen.gameObject.SetActive(false);
 
                 var executionQueue = new ExecutionQueue(synchronized.player.State, synchronized.configs);
 
                 var commandsTask = HandleCommandsAsync(executionQueue, client, cts.Token);
-
                 var gameLoopTask = HandleGameLoopAsync(executionQueue, synchronized.player, synchronized.configs, cts.Token);
 
                 var completedTask = await Task.WhenAny(commandsTask, gameLoopTask);
 
                 if (completedTask.Result != null)
                 {
-                    Debug.LogError(completedTask.Result.Message);
+                    client.Disconnect();
+                    await screensLibrary.errorScreen.ShowAsync(completedTask.Result.Message, cts.Token);
                 }
             }
         }
         
-        private async Task<((Player player, Configs configs), bool)> HandleConnectionAsync(IClient client, CancellationToken ct)
+        private async Task<((Player player, Configs configs), Error)> HandleConnectionAsync(Account account, IClient client, CancellationToken ct)
         {
-            var account = new Account { Id = Guid.NewGuid().ToString(), AccessToken = "test" };
-            var player = new Player { AccountId = account.Id };
-            Configs configs = default;
-
-            while (!ct.IsCancellationRequested)
+            var error = await client.ConnectAsync(ct);
+            if (error != null)
             {
-                await client.ConnectAsync(ct);
-                Debug.Log("Connected 2");
+                return (default, error);
+            }
+            Debug.Log("Connected");
 
-                var metagameClient = new MetagameClient(client);
+            var metagameClient = new MetagameClient(client);
 
-                await metagameClient.AuthenticateAsync(account);
-                Debug.Log("Authenticated");
+            error = await metagameClient.AuthenticateAsync(account, ct);
+            if (error != null)
+            {
+                return (default, error);
+            }
+            Debug.Log("Authenticated");
 
-                var (result, error) = await metagameClient.SynchronizeAsync();
-                if (error != null)
-                {
-                    Debug.LogError(error.Message);
-                    continue;
-                }
-                Debug.Log("Synchronized");
-
-                (player.State, configs) = result;
-                break;
+            PlayerState state;
+            Configs configs;
+            ((state, configs), error) = await metagameClient.SynchronizeAsync(ct);
+            if (error != null)
+            {
+                Debug.LogError(error.Message);
+                return (default, error);
             }
 
-            return ((player, configs), ct.IsCancellationRequested);
+            Debug.Log("Synchronized");
+
+            return ((new Player { AccountId = account.Id, State = state }, configs), null);
         }
 
         private async Task<Error> HandleCommandsAsync(ExecutionQueue executionQueue, IClient client, CancellationToken ct)
@@ -94,13 +98,14 @@ namespace Application.Runtime
             Error error = null;
             while (!ct.IsCancellationRequested && client.IsConnected)
             {
-                var command = await executionQueue.WaitForCommandAsync(ct);
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var command = await executionQueue.WaitForCommandAsync(cts.Token);
                 if (command != null)
                 {
-                    error = await commandSender.Send(command);
+                    Debug.Log($"Sending command: {command.GetType().Name}");
+                    error = await commandSender.Send(command, cts.Token);
                     if (error != null)
                     {
-                        client.Disconnect();
                         break;
                     }
                 }

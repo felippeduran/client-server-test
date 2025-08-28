@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -45,11 +46,6 @@ namespace Presentation.Gameplay.Screen
         [SerializeField] private TargetNumberPresenter targetNumberPresenter;
         [SerializeField] private DicePresenter dicePresenter;
 
-        private void Awake()
-        {
-            Init(10, 6);
-        }
-
         private void OnEnable()
         {
             rollButton.onClick.AddListener(OnRollButtonClicked);
@@ -64,6 +60,8 @@ namespace Presentation.Gameplay.Screen
         {
             rollCounterPresenter.Init(maxRolls);
             targetNumberPresenter.Init(targetNumber);
+            dicePresenter.Init();
+            rollButton.interactable = true;
         }
 
         public async Task<GameplayResult> ShowAsync(int maxRolls, int targetNumber, CancellationToken ct)
@@ -76,11 +74,15 @@ namespace Presentation.Gameplay.Screen
 
             var (_, won, _) = await UniTask.WhenAny(victoryTask, lossTask);
 
+            rollButton.interactable = false;
+
+            await Task.Delay(TimeSpan.FromSeconds(0.7f));
+
             gameObject.SetActive(false);
             return new GameplayResult
             {
                 Won = won,
-                Score = maxRolls - rollCounterPresenter.RemainingRolls,
+                Score = rollCounterPresenter.RemainingRolls,
             };
         }
 
@@ -98,12 +100,12 @@ namespace Presentation.Gameplay.Screen
 
         private bool HasWon()
         {
-            return dicePresenter.CurrentDiceNumber == targetNumberPresenter.TargetNumber;
+            return !dicePresenter.Rolling && dicePresenter.CurrentDiceNumber == targetNumberPresenter.TargetNumber;
         }
 
         private bool HasLost()
         {
-            return rollCounterPresenter.RemainingRolls <= 0;
+            return !dicePresenter.Rolling && rollCounterPresenter.RemainingRolls <= 0;
         }
 
         private async void OnRollButtonClicked()

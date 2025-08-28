@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 public class CommandSender
@@ -9,10 +10,8 @@ public class CommandSender
         this.client = client;
     }
 
-    public async Task<Error> Send(ICommand command)
+    public async Task<Error> Send(ICommand command, CancellationToken ct)
     {
-        var commandName = command.GetType().Name;
-        commandName = commandName.Replace("Command", string.Empty);
-        return await client.SendMessage($"CommandHandler/{commandName}", command);
+        return await client.SendMessage($"CommandHandler/HandleCommand", command, ct);
     }
 }

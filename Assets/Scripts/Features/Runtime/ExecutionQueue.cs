@@ -35,10 +35,11 @@ public class ExecutionQueue
         ICommand command = null;
         while (!ct.IsCancellationRequested)
         {
-            if (!_queue.TryDequeue(out command))
+            if (_queue.TryDequeue(out command))
             {
-                await Task.Yield();
+                break;
             }
+            await Task.Yield();
         }
         return command;
     }

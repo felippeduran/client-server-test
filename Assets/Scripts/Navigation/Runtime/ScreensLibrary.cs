@@ -4,6 +4,7 @@ using Presentation.Main.Screen;
 using Presentation.Results.Screen;
 using Presentation.Loading.Screen;
 using Presentation.Stats.Screens;
+using Presentation.Error.Screen;
 
 public class ScreensLibrary : MonoBehaviour
 {
@@ -12,4 +13,5 @@ public class ScreensLibrary : MonoBehaviour
     public ResultsScreen resultScreen;
     public LoadingScreen loadingScreen;
     public StatsScreen statsScreen;
+    public ErrorScreen errorScreen;
 }

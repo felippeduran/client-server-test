@@ -122,10 +122,16 @@ public class FakeServerHandler<TConnState> : IFakeServerHandler<TConnState>
             return new Error { Message = "handler not found" };
         }
 
-        var validArgType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TArgs));
+        var validConnStateType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TConnState));
+        if (!validConnStateType)
+        {
+            return new Error { Message = "invalid connection state type" };
+        }
+
+        var validArgType = handlerData.Item1.GetParameters()[1].ParameterType.IsAssignableFrom(typeof(TArgs));
         if (!validArgType)
         {
-            return new Error { Message = "invalid type" };
+            return new Error { Message = "invalid args type" };
         }
 
         return (Error)handlerData.Item1.Invoke(handlerData.Item2, new object[] { connState, args });

@@ -20,10 +20,10 @@ public class FakeClient : IClient
         this.fakeServer = fakeServer;
     }
 
-    public async Task ConnectAsync(CancellationToken ct)
+    public async Task<Error> ConnectAsync(CancellationToken ct)
     {
-        await Task.Delay(1000, ct);
         connectionId = fakeServer.CreateConnection();
+        return null;
     }
 
     public void Disconnect()
@@ -32,7 +32,7 @@ public class FakeClient : IClient
         connectionId = -1;
     }
 
-    public async Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args)
+    public async Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args, CancellationToken ct)
     {
         if (!IsConnected)
         {
@@ -43,14 +43,14 @@ public class FakeClient : IClient
         return fakeServer.ReceiveMessage<TArgs, TResult>(connectionId, message, args);
     }
 
-    public async Task<Error> SendMessage<TArgs>(string message, TArgs args)
+    public async Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
     {
         if (!IsConnected)
         {
             throw new InvalidOperationException("Client is not connected");
         }
 
-        await Task.Delay(1000);
+        await Task.Delay(1000, ct);
         return fakeServer.ReceiveMessage(connectionId, message, args);
     }
 }
