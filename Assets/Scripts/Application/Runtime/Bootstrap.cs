@@ -79,7 +79,8 @@ namespace Application.Runtime
 
             PlayerState state;
             Configs configs;
-            ((state, configs), error) = await metagameClient.SynchronizeAsync(ct);
+            DateTime serverTime;
+            ((state, configs, serverTime), error) = await metagameClient.SynchronizeAsync(ct);
             if (error != null)
             {
                 Debug.LogError(error.Message);

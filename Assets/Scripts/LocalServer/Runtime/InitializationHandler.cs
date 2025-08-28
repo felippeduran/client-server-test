@@ -7,6 +7,7 @@ public class GetPlayerStateArgs { }
 public class GetPlayerStateRes
 {
     public PlayerState PlayerState;
+    public DateTime ServerTime;
 }
 
 [Serializable]
@@ -47,7 +48,8 @@ public class InitializationHandler
             {
                 Persistent = playerState,
                 Session = connState.SessionState,
-            }
+            },
+            ServerTime = DateTime.UtcNow,
         }, null);
     }
 
