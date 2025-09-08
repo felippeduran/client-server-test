@@ -43,7 +43,7 @@ public class FakeServerHandlerTests
         };
 
         var handler = new FakeServerHandler<object>(new object[] { mockHandler });
-        var (result, error) = handler.HandleMessage<int, (int, string)>(connState, "TestHandler.TestMethod", args);
+        var (result, error) = handler.HandleMessage<int, (int, string)>(connState, "TestHandler/TestMethod", args);
 
         Assert.That(result, Is.EqualTo(expectedResult));
         Assert.That(error, Is.EqualTo(null));
@@ -61,9 +61,9 @@ public class FakeServerHandlerTests
         };
 
         var handler = new FakeServerHandler<object>(new object[] { mockHandler });
-        var (result, error) = handler.HandleMessage<int, (int, string)>(connState, "TestHandler.TestMethod", args);
+        var (result, error) = handler.HandleMessage<int, (int, string)>(connState, "TestHandler/TestMethod", args);
 
-        Assert.That(error.Message, Is.EqualTo(expectedError.Message));
+        Assert.That(error, Is.EqualTo(expectedError));
         Assert.That(result, Is.EqualTo(default((int, string))));
     }
 
@@ -71,16 +71,16 @@ public class FakeServerHandlerTests
     public void TestHandleMessage_OnInvalidType_ShouldReturnError()
     {
         var args = "1";
+        var expectedError = new Error { Message = "invalid args type" };
         var connState = new Dictionary<string, int>();
-        var expectedError = new Error { Message = "invalid type" };
         var mockHandler = new TestHandler
         {
             Handler = (connState, arg) => (default, null),
         };
 
         var handler = new FakeServerHandler<object>(new object[] { mockHandler });
-        var (result, error) = handler.HandleMessage<string, int>(connState, "TestHandler.TestMethod", args);
-        Assert.AreEqual("invalid type", error.Message);
+        var (result, error) = handler.HandleMessage<string, int>(connState, "TestHandler/TestMethod", args);
+        Assert.That(error, Is.EqualTo(expectedError));
         Assert.That(result, Is.EqualTo(default(int)));
     }
 
@@ -88,6 +88,7 @@ public class FakeServerHandlerTests
     public void TestInvalidEndpoint()
     {
         var args = 1;
+        var expectedError = new Error { Message = "handler not found" };
         var connState = new Dictionary<string, int>();
         var mockHandler = new TestHandler
         {
@@ -96,7 +97,7 @@ public class FakeServerHandlerTests
 
         var handler = new FakeServerHandler<object>(new object[] { mockHandler });
         var (result, error) = handler.HandleMessage<int, int>(connState, "TestMethod2", args);
-        Assert.AreEqual("handler not found", error.Message);
+        Assert.That(error, Is.EqualTo(expectedError));
         Assert.That(result, Is.EqualTo(default(int)));
     }
 }
