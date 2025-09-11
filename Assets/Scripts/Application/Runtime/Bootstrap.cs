@@ -19,7 +19,7 @@ namespace Application.Runtime
             var accountStorage = new InMemoryAccounts();
             var server = FakeServerFactory.CreateServer<ConnectionState>(new object[] {
                 new AuthenticationHandler(accountStorage),
-                new CommandHandler(accountStorage),
+                new CommandHandler(new CommandHandler.Config { MaxTimeDifferenceMilliseconds = 1000 }, accountStorage),
                 new InitializationHandler(accountStorage),
             });
 
@@ -37,7 +37,7 @@ namespace Application.Runtime
                 if (error != null)
                 {
                     client.Disconnect();
-                    await screensLibrary.errorScreen.ShowAsync(error.Message, cts.Token);
+                    await screensLibrary.errorScreen.ShowAsync(error.Message, "Try again", cts.Token);
                     continue;
                 }
 
@@ -47,19 +47,19 @@ namespace Application.Runtime
                 var executionQueue = new ExecutionQueue(synchronized.player.State, synchronized.configs);
 
                 var commandsTask = HandleCommandsAsync(executionQueue, client, cts.Token);
-                var gameLoopTask = HandleGameLoopAsync(executionQueue, synchronized.player, synchronized.configs, cts.Token);
+                var gameLoopTask = HandleGameLoopAsync(executionQueue, synchronized.player, synchronized.clock, synchronized.configs, cts.Token);
 
                 var completedTask = await Task.WhenAny(commandsTask, gameLoopTask);
 
                 if (completedTask.Result != null)
                 {
                     client.Disconnect();
-                    await screensLibrary.errorScreen.ShowAsync(completedTask.Result.Message, cts.Token);
+                    await screensLibrary.errorScreen.ShowAsync(completedTask.Result.Message, "Try again", cts.Token);
                 }
             }
         }
-        
-        private async Task<((Player player, Configs configs), Error)> HandleConnectionAsync(Account account, IClient client, CancellationToken ct)
+
+        private async Task<((Player player, Configs configs, IClock clock), Error)> HandleConnectionAsync(Account account, IClient client, CancellationToken ct)
         {
             var error = await client.ConnectAsync(ct);
             if (error != null)
@@ -89,7 +89,7 @@ namespace Application.Runtime
 
             Debug.Log("Synchronized");
 
-            return ((new Player { AccountId = account.Id, State = state }, configs), null);
+            return ((new Player { AccountId = account.Id, State = state }, configs, new OffsetClock(serverTime)), null);
         }
 
         private async Task<Error> HandleCommandsAsync(ExecutionQueue executionQueue, IClient client, CancellationToken ct)
@@ -115,18 +115,19 @@ namespace Application.Runtime
             return error;
         }
 
-        private async Task<Error> HandleGameLoopAsync(ExecutionQueue executionQueue, Player player, Configs configs, CancellationToken ct)
+        private async Task<Error> HandleGameLoopAsync(ExecutionQueue executionQueue, IReadOnlyPlayer player, IClock clock, Configs configs, CancellationToken ct)
         {
             while (!ct.IsCancellationRequested)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                var play = await OpenMainMenuAsync(player, cts.Token);
+                var play = await OpenMainMenuAsync(player, clock, configs, cts.Token);
 
                 if (play != null)
                 {
                     executionQueue.Execute(new BeginLevelCommand
                     {
                         LevelId = play.Level,
+                        Now = clock.Now(),
                     });
 
                     var levelConfig = configs.Levels[play.Level];
@@ -145,24 +146,25 @@ namespace Application.Runtime
             return null;
         }
 
-        private async Task<MainScreen.Play> OpenMainMenuAsync(Player player, CancellationToken ct)
+        private async Task<MainScreen.Play> OpenMainMenuAsync(IReadOnlyPlayer player, IClock clock, Configs configs, CancellationToken ct)
         {
+            var currentLevel = player.State.Persistent.LevelProgression.CurrentLevel;
             screensLibrary.mainMenuScreen.Show();
-            screensLibrary.mainMenuScreen.Setup(new MainScreen.MainScreenData
-            {
-                AccountId = player.AccountId,
-                Energy = player.State.Persistent.Energy.CurrentAmount,
-                CurrentLevel = player.State.Persistent.LevelProgression.CurrentLevel,
-                MaxLevel = player.State.Persistent.LevelProgression.CurrentLevel,
-            });
+            screensLibrary.mainMenuScreen.Setup(GetMainScreenData(player, currentLevel, clock.Now(), configs));
 
             while (!ct.IsCancellationRequested)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                var (openStats, play) = await screensLibrary.mainMenuScreen.WaitForInputAsync(cts.Token);
+                var (openStats, play, refresh) = await screensLibrary.mainMenuScreen.WaitForInputAsync(cts.Token);
 
                 if (play != null)
                 {
+                    if (player.State.Persistent.Energy.GetPredictedAmount(clock.Now(), configs.Energy) < configs.Levels[play.Level].EnergyCost)
+                    {
+                        await screensLibrary.errorScreen.ShowAsync("Not enough energy", "OK", cts.Token);
+                        continue;
+                    }
+
                     return play;
                 }
 
@@ -171,10 +173,28 @@ namespace Application.Runtime
                     var statistics = player.State.Persistent.LevelProgression.Statistics.ToArray();
                     await screensLibrary.statsScreen.OpenAsync(statistics, cts.Token);
                 }
+
+                if (refresh)
+                {
+                    screensLibrary.mainMenuScreen.Setup(GetMainScreenData(player, currentLevel, clock.Now(), configs));
+                }
             }
 
             screensLibrary.mainMenuScreen.Hide();
             return null;
+        }
+
+        private MainScreenData GetMainScreenData(IReadOnlyPlayer player, int currentLevel, DateTime now, Configs configs)
+        {
+            var levelConfig = configs.Levels[currentLevel];
+            return new MainScreenData
+            {
+                AccountId = player.AccountId,
+                EnergyAmount = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy),
+                CurrentLevel = currentLevel,
+                MaxLevel = player.State.Persistent.LevelProgression.CurrentLevel,
+                CanPlay = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy) > levelConfig.EnergyCost,
+            };
         }
     }
 }

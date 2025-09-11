@@ -112,8 +112,8 @@ public class AuthenticationHandler
         {
             Energy = new Energy
             {
-                CurrentAmount = 5,
-                LastRechargeAt = DateTime.Now
+                CurrentAmount = 1,
+                LastRechargeAt = DateTime.UtcNow
             },
             LevelProgression = new LevelProgression
             {

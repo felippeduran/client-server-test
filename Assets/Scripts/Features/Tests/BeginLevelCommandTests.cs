@@ -1,4 +1,4 @@
-
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
@@ -15,6 +15,7 @@ public class BeginLevelCommandTests
                 Energy = new Energy
                 {
                     CurrentAmount = 1,
+                    LastRechargeAt = DateTime.UtcNow,
                 },
                 LevelProgression = new LevelProgression
                 {
@@ -44,7 +45,7 @@ public class BeginLevelCommandTests
         {
             Persistent = new PersistentState
             {
-                Energy = new Energy { CurrentAmount = 0 },
+                Energy = new Energy { CurrentAmount = 0, LastRechargeAt = DateTime.UtcNow },
                 LevelProgression = new LevelProgression
                 {
                     CurrentLevel = 1,
@@ -71,9 +72,9 @@ public class BeginLevelCommandTests
         {
             Persistent = new PersistentState
             {
-                Energy = new Energy { CurrentAmount = 1 },
+                Energy = new Energy { CurrentAmount = 1, },
+                LevelProgression = new LevelProgression { CurrentLevel = 0, Statistics = new SortedSet<LevelStats>() },
             },
-            Session = new SessionState { }
         };
 
         var configs = GetTestConfigs();
@@ -91,6 +92,7 @@ public class BeginLevelCommandTests
     {
         return new Configs
         {
+            Energy = new EnergyConfig { MaxEnergy = 10, RechargeInterval = TimeSpan.FromSeconds(10) },
             Levels = new[]
             {
                 new LevelConfig { },

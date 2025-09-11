@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -5,6 +6,11 @@ using System.Threading.Tasks;
 public interface ICommand
 {
     public void Execute(PlayerState state, Configs configs);
+}
+
+public interface ITimedCommand : ICommand
+{
+    public DateTime Now { get; }
 }
 
 // public interface ICommand<TRes> : ICommand where TRes : new()

@@ -10,10 +10,12 @@ namespace Presentation.Error.Screen
     {
         [SerializeField] private Button closeButton;
         [SerializeField] private TMP_Text errorLabel;
+        [SerializeField] private TMP_Text buttonLabel;
 
-        public async UniTask ShowAsync(string error, CancellationToken ct)
+        public async UniTask ShowAsync(string error, string buttonLabel, CancellationToken ct)
         {
             errorLabel.text = error;
+            this.buttonLabel.text = buttonLabel;
             gameObject.SetActive(true);
             await closeButton.OnClickAsync(ct);
             gameObject.SetActive(false);

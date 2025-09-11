@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -12,9 +13,9 @@ namespace Presentation.Main.Presenters
             UpdateText(energy);
         }
 
-        private void UpdateText(int energy)
+        private void UpdateText(int energyAmount)
         {
-            labelText.text = $"{energy}";
+            labelText.text = $"{energyAmount}";
         }
     }
 }

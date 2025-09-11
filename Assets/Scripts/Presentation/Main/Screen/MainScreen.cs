@@ -7,19 +7,20 @@ using Cysharp.Threading.Tasks;
 using System;
 using TMPro;
 
+[Serializable]
+public struct MainScreenData
+{
+    public string AccountId;
+    public int CurrentLevel;
+    public int EnergyAmount;
+    public int MaxLevel;
+    public bool CanPlay;
+}
+
 namespace Presentation.Main.Screen
 {
     public class MainScreen : MonoBehaviour
     {
-        [Serializable]
-        public struct MainScreenData
-        {
-            public string AccountId;
-            public int Energy;
-            public int CurrentLevel;
-            public int MaxLevel;
-        }
-
         public class Play
         {
             public int Level;
@@ -45,22 +46,39 @@ namespace Presentation.Main.Screen
         {
             accountIdText.text = data.AccountId;
             levelSelectionPresenter.Setup(data.CurrentLevel, data.MaxLevel);
-            energyPresenter.Setup(data.Energy);
+            energyPresenter.Setup(data.EnergyAmount);
         }
 
-        public async Task<(bool, Play)> WaitForInputAsync(CancellationToken ct)
+        public async Task<(bool, Play, bool)> WaitForInputAsync(CancellationToken ct)
         {
             var statsButtonTask = WaitForStatsButtonClickAsync(ct);
             var playButtonTask = WaitForPlayButtonClickAsync(ct);
+            var refreshTask = WaitForRefreshAsync(ct);
 
-            var (_, openStats, play) = await UniTask.WhenAny(statsButtonTask, playButtonTask);
+            var (_, openStats, play, refresh) = await UniTask.WhenAny(statsButtonTask, playButtonTask, refreshTask);
 
             if (openStats)
             {
-                return (true, null);
+                return (true, null, false);
             }
 
-            return (false, new Play { Level = levelSelectionPresenter.CurrentLevelIndex });
+            if (play)
+            {
+                return (false, new Play { Level = levelSelectionPresenter.CurrentLevelIndex }, false);
+            }
+
+            if (refresh)
+            {
+                return (false, null, true);
+            }
+
+            return (false, null, false);
+        }
+
+        async UniTask<bool> WaitForRefreshAsync(CancellationToken ct)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+            return true;
         }
 
         async UniTask<bool> WaitForStatsButtonClickAsync(CancellationToken ct)

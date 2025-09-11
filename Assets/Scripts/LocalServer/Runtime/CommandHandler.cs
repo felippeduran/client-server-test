@@ -3,10 +3,18 @@ using UnityEngine;
 
 public class CommandHandler
 {
+    [Serializable]
+    public struct Config
+    {
+        public double MaxTimeDifferenceMilliseconds;
+    }
+
+    readonly Config config;
     readonly IAccountStorage accountStorage;
 
-    public CommandHandler(IAccountStorage accountStorage)
+    public CommandHandler(Config config, IAccountStorage accountStorage)
     {
+        this.config = config;
         this.accountStorage = accountStorage;
     }
 
@@ -16,6 +24,14 @@ public class CommandHandler
         if (connState.AccountId == null)
         {
             return new Error { Message = "connection not authenticated" };
+        }
+
+        if (command is ITimedCommand timedCommand)
+        {
+            if (Math.Abs((timedCommand.Now - DateTime.UtcNow).TotalMilliseconds) > config.MaxTimeDifferenceMilliseconds)
+            {
+                return new Error { Message = "command timestamp is too far" };
+            }
         }
 
         var (persistentState, error) = accountStorage.GetPersistentState(connState.AccountId);
