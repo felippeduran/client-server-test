@@ -11,9 +11,23 @@ using TMPro;
 public struct MainScreenData
 {
     public string AccountId;
-    public int CurrentLevel;
+    public MainScreenEnergyData EnergyData;
+    public MainScreenLevelData LevelData;
+}
+
+[Serializable]
+public struct MainScreenEnergyData
+{
     public int EnergyAmount;
-    public int MaxLevel;
+    public TimeSpan NextRechargeIn;
+}
+
+[Serializable]
+public struct MainScreenLevelData
+{
+    public int CurrentLevel;
+    public int EnergyCost;
+    public int EnergyReward;
     public bool CanPlay;
 }
 
@@ -21,12 +35,16 @@ namespace Presentation.Main.Screen
 {
     public class MainScreen : MonoBehaviour
     {
-        public class Play
+        public struct Actions
         {
-            public int Level;
+            public bool OpenStats;
+            public int ChangeLevelDirection;
+            public bool Refresh;
+            public bool Play;
         }
 
         [SerializeField] private TMP_Text accountIdText;
+        [SerializeField] private TMP_Text energyCostText;
         [SerializeField] private Button statsButton;
         [SerializeField] private Button playButton;
         [SerializeField] private LevelSelectionPresenter levelSelectionPresenter;
@@ -45,34 +63,42 @@ namespace Presentation.Main.Screen
         public void Setup(MainScreenData data)
         {
             accountIdText.text = data.AccountId;
-            levelSelectionPresenter.Setup(data.CurrentLevel, data.MaxLevel);
-            energyPresenter.Setup(data.EnergyAmount);
+            energyCostText.text = $"{data.LevelData.EnergyCost} Energy";
+            levelSelectionPresenter.Setup(data.LevelData.CurrentLevel, data.LevelData.EnergyReward);
+            energyPresenter.Setup(data.EnergyData.EnergyAmount, data.EnergyData.NextRechargeIn);
+            playButton.interactable = data.LevelData.CanPlay;
         }
 
-        public async Task<(bool, Play, bool)> WaitForInputAsync(CancellationToken ct)
+        public async Task<Actions> WaitForInputAsync(CancellationToken ct)
         {
             var statsButtonTask = WaitForStatsButtonClickAsync(ct);
             var playButtonTask = WaitForPlayButtonClickAsync(ct);
             var refreshTask = WaitForRefreshAsync(ct);
+            var levelSelectionTask = levelSelectionPresenter.WaitForLevelSelectionAsync(ct);
 
-            var (_, openStats, play, refresh) = await UniTask.WhenAny(statsButtonTask, playButtonTask, refreshTask);
+            var (_, openStats, play, refresh, levelSelection) = await UniTask.WhenAny(statsButtonTask, playButtonTask, refreshTask, levelSelectionTask);
 
             if (openStats)
             {
-                return (true, null, false);
+                return new Actions { OpenStats = true };
+            }
+
+            if (levelSelection != 0)
+            {
+                return new Actions { ChangeLevelDirection = levelSelection };
             }
 
             if (play)
             {
-                return (false, new Play { Level = levelSelectionPresenter.CurrentLevelIndex }, false);
+                return new Actions { Play = true };
             }
 
             if (refresh)
             {
-                return (false, null, true);
+                return new Actions { Refresh = true };
             }
 
-            return (false, null, false);
+            return new Actions { };
         }
 
         async UniTask<bool> WaitForRefreshAsync(CancellationToken ct)

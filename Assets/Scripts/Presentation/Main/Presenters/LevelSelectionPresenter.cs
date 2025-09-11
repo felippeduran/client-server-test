@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,56 +12,46 @@ namespace Presentation.Main.Presenters
         [SerializeField] private Button leftButton;
         [SerializeField] private Button rightButton;
         [SerializeField] private TextMeshProUGUI labelText;
-        
-        public int CurrentLevelIndex { get; private set; }
+        [SerializeField] private TMP_Text rewardText;
 
-        private int levelCount;
-
-        public void Setup(int currentLevel, int levelCount)
+        public void Setup(int currentLevel, int reward)
         {
-            // Ensure currentLevel is at least 1 and within valid range
-            CurrentLevelIndex = Mathf.Clamp(currentLevel, 1, levelCount);
-            this.levelCount = levelCount;
-            UpdateText();
+            labelText.text = $"Level {currentLevel}";
+            rewardText.text = $"Reward: {reward} Energy";
         }
         
-        private void Awake()
+        public async UniTask<int> WaitForLevelSelectionAsync(CancellationToken ct)
         {
-            levelCount = 1;
-            CurrentLevelIndex = 1; // Start at level 1 instead of 0
-            UpdateText();
-        }
-        
-        private void OnEnable()
-        {
-            leftButton.onClick.AddListener(OnLeftButtonClicked);
-            rightButton.onClick.AddListener(OnRightButtonClicked);
-        }
+            var leftButtonTask = WaitForLeftButtonClickAsync(ct);
+            var rightButtonTask = WaitForRightButtonClickAsync(ct);
 
-        private void OnDisable()
-        {
-            leftButton.onClick.RemoveAllListeners();
-            rightButton.onClick.RemoveAllListeners(); 
+            var (_, leftButtonClicked, rightButtonClicked) = await UniTask.WhenAny(leftButtonTask, rightButtonTask);
+
+            var selection = 0;
+
+            if (leftButtonClicked)
+            {
+                selection = -1;
+            }
+
+            if (rightButtonClicked)
+            {
+                selection = 1;
+            }
+
+            return selection;
         }
 
-        private void UpdateText()
+        private async UniTask<bool> WaitForLeftButtonClickAsync(CancellationToken ct)
         {
-            // CurrentLevelIndex is now one-based, so no need to add 1
-            labelText.text = $"Level {CurrentLevelIndex}";
+            await leftButton.OnClickAsync(ct);
+            return true;
         }
-        
-        private void OnLeftButtonClicked()
+
+        private async UniTask<bool> WaitForRightButtonClickAsync(CancellationToken ct)
         {
-            // Cycle to previous level, ensuring we never go below 1
-            CurrentLevelIndex = CurrentLevelIndex == 1 ? levelCount : CurrentLevelIndex - 1;
-            UpdateText();
-        }
-        
-        private void OnRightButtonClicked()
-        {
-            // Cycle to next level, ensuring we cycle back to 1 when exceeding levelCount
-            CurrentLevelIndex = CurrentLevelIndex == levelCount ? 1 : CurrentLevelIndex + 1;
-            UpdateText();
+            await rightButton.OnClickAsync(ct);
+            return true;
         }
     }
 }

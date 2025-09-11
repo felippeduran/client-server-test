@@ -87,7 +87,7 @@ namespace Application.Runtime
                 return (default, error);
             }
 
-            Debug.Log("Synchronized");
+            Debug.Log("Synchronized. Time difference: " + (serverTime - DateTime.UtcNow).TotalMilliseconds + "ms");
 
             return ((new Player { AccountId = account.Id, State = state }, configs, new OffsetClock(serverTime)), null);
         }
@@ -129,6 +129,8 @@ namespace Application.Runtime
                         LevelId = play.Level,
                         Now = clock.Now(),
                     });
+                    Debug.Log($"Local Persistent state after: {player.State.Persistent.LevelProgression.Statistics.Count}");
+                    // Debug.Log($"Local session state after: {player.State.Session.CurrentLevelId}");
 
                     var levelConfig = configs.Levels[play.Level];
                     var result = await screensLibrary.gameplayScreen.ShowAsync(levelConfig.MaxRolls, levelConfig.TargetNumber, cts.Token);
@@ -139,6 +141,9 @@ namespace Application.Runtime
                         Score = result.Score,
                     });
 
+                    // Debug.Log($"Local session state after: {player.State.Session.CurrentLevelId}");
+                    Debug.Log($"Local Persistent state after: {player.State.Persistent.LevelProgression.Statistics.Count}");
+
                     await screensLibrary.resultScreen.ShowAsync(result.Won, cts.Token);
                 }
             }
@@ -146,7 +151,12 @@ namespace Application.Runtime
             return null;
         }
 
-        private async Task<MainScreen.Play> OpenMainMenuAsync(IReadOnlyPlayer player, IClock clock, Configs configs, CancellationToken ct)
+        public class Play
+        {
+            public int Level;
+        }
+
+        private async Task<Play> OpenMainMenuAsync(IReadOnlyPlayer player, IClock clock, Configs configs, CancellationToken ct)
         {
             var currentLevel = player.State.Persistent.LevelProgression.CurrentLevel;
             screensLibrary.mainMenuScreen.Show();
@@ -155,26 +165,32 @@ namespace Application.Runtime
             while (!ct.IsCancellationRequested)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                var (openStats, play, refresh) = await screensLibrary.mainMenuScreen.WaitForInputAsync(cts.Token);
+                var actions = await screensLibrary.mainMenuScreen.WaitForInputAsync(cts.Token);
 
-                if (play != null)
+                if (actions.Play)
                 {
-                    if (player.State.Persistent.Energy.GetPredictedAmount(clock.Now(), configs.Energy) < configs.Levels[play.Level].EnergyCost)
+                    if (player.State.Persistent.Energy.GetPredictedAmount(clock.Now(), configs.Energy) < configs.Levels[currentLevel].EnergyCost)
                     {
                         await screensLibrary.errorScreen.ShowAsync("Not enough energy", "OK", cts.Token);
                         continue;
                     }
 
-                    return play;
+                    return new Play { Level = currentLevel };
                 }
 
-                if (openStats)
+                if (actions.ChangeLevelDirection != 0)
+                {
+                    currentLevel = Math.Clamp(currentLevel + actions.ChangeLevelDirection, 1, player.State.Persistent.LevelProgression.CurrentLevel);
+                    screensLibrary.mainMenuScreen.Setup(GetMainScreenData(player, currentLevel, clock.Now(), configs));
+                }
+
+                if (actions.OpenStats)
                 {
                     var statistics = player.State.Persistent.LevelProgression.Statistics.ToArray();
                     await screensLibrary.statsScreen.OpenAsync(statistics, cts.Token);
                 }
 
-                if (refresh)
+                if (actions.Refresh)
                 {
                     screensLibrary.mainMenuScreen.Setup(GetMainScreenData(player, currentLevel, clock.Now(), configs));
                 }
@@ -190,10 +206,18 @@ namespace Application.Runtime
             return new MainScreenData
             {
                 AccountId = player.AccountId,
-                EnergyAmount = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy),
-                CurrentLevel = currentLevel,
-                MaxLevel = player.State.Persistent.LevelProgression.CurrentLevel,
-                CanPlay = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy) > levelConfig.EnergyCost,
+                EnergyData = new MainScreenEnergyData
+                {
+                    EnergyAmount = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy),
+                    NextRechargeIn = player.State.Persistent.Energy.GetTimeRemainingForNextRecharge(now, configs.Energy),
+                },
+                LevelData = new MainScreenLevelData
+                {
+                    CurrentLevel = currentLevel,
+                    EnergyCost = levelConfig.EnergyCost,
+                    EnergyReward = levelConfig.EnergyReward,
+                    CanPlay = player.State.Persistent.Energy.GetPredictedAmount(now, configs.Energy) >= levelConfig.EnergyCost,
+                },
             };
         }
     }

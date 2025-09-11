@@ -685,7 +685,7 @@ MonoBehaviour:
   screensLibrary: {fileID: 1944796723}
   connectivityConfig:
     FailureRate: 0
-    LatencySeconds: 0.3
+    RTTSeconds: 0.6
 --- !u!114 &2096625944 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7544389898273819585, guid: 92b6819d4271f4a0f9ab11806568edce, type: 3}
@@ -875,7 +875,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3342328570688356306, guid: bf7d5e4fd20d84dfca75e471baa6a009, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -9.999992
+      value: -10.0000305
       objectReference: {fileID: 0}
     - target: {fileID: 3355469844408378302, guid: bf7d5e4fd20d84dfca75e471baa6a009, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1500,6 +1500,10 @@ PrefabInstance:
     - target: {fileID: 7642560182717742328, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8487964018575795735, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.000019073486
       objectReference: {fileID: 0}
     - target: {fileID: 8627447747716061956, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
       propertyPath: m_SizeDelta.y
