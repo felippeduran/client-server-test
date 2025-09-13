@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"technical-test-backend/internal/configs"
-	"technical-test-backend/internal/core"
+	"technical-test-backend/internal/core/commands"
 	sessionmemory "technical-test-backend/internal/session/memory"
 	"time"
 )
@@ -59,7 +59,7 @@ func main() {
 		configsRes.Configs.Energy.MaxEnergy)
 
 	// Example: Begin level command
-	beginLevelCmd := &core.BeginLevelCommand{
+	beginLevelCmd := &commands.BeginLevel{
 		LevelID: 1,
 		Now:     time.Now(),
 	}
@@ -71,7 +71,7 @@ func main() {
 	fmt.Println("Begin level command executed successfully")
 
 	// Example: End level command
-	endLevelCmd := &core.EndLevelCommand{
+	endLevelCmd := &commands.EndLevel{
 		Success: true,
 		Score:   100,
 	}
