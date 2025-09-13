@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/session"
 	"time"
 )
 
@@ -16,12 +17,12 @@ type GetPlayerStateRes struct {
 
 // PlayerStateHandler handles player state requests
 type PlayerStateHandler struct {
-	sessionPool *SessionPool
+	sessionPool session.Pool
 	dal         *DAL
 }
 
 // NewPlayerStateHandler creates a new player state handler
-func NewPlayerStateHandler(sessionPool *SessionPool, dal *DAL) *PlayerStateHandler {
+func NewPlayerStateHandler(sessionPool session.Pool, dal *DAL) *PlayerStateHandler {
 	return &PlayerStateHandler{
 		sessionPool: sessionPool,
 		dal:         dal,
@@ -29,29 +30,29 @@ func NewPlayerStateHandler(sessionPool *SessionPool, dal *DAL) *PlayerStateHandl
 }
 
 // GetPlayerState retrieves the current player state
-func (h *PlayerStateHandler) GetPlayerState(sessionID string, args *GetPlayerStateArgs) (*GetPlayerStateRes, *Error) {
+func (h *PlayerStateHandler) GetPlayerState(sessionID string, args *GetPlayerStateArgs) (*GetPlayerStateRes, error) {
 	// Check authentication
 	accountID, authenticated := h.sessionPool.GetAccountID(sessionID)
 	if !authenticated {
-		return nil, &Error{Message: "connection not authenticated"}
+		return nil, fmt.Errorf("connection not authenticated")
 	}
 
 	// Get persistent state
 	persistentState, err := h.dal.GetPersistentState(accountID)
 	if err != nil {
-		return nil, &Error{Message: fmt.Sprintf("failed to get persistent state: %v", err)}
+		return nil, fmt.Errorf("failed to get persistent state: %v", err)
 	}
 
 	// Get session state
-	session, exists := h.sessionPool.GetSession(sessionID)
-	if !exists {
-		return nil, &Error{Message: "session not found"}
+	var sessionState SessionState
+	if err := h.sessionPool.GetSessionData(sessionID, &sessionState); err != nil {
+		return nil, fmt.Errorf("session not found")
 	}
 
 	// Create player state
 	playerState := PlayerState{
 		Persistent: persistentState,
-		Session:    SessionState{CurrentLevelID: session.CurrentLevelID},
+		Session:    sessionState,
 	}
 
 	// Update activity

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/session"
 	"time"
 )
 
@@ -12,16 +13,18 @@ type AuthenticateArgs struct {
 }
 
 // AuthenticateRes represents authentication response
-type AuthenticateRes struct{}
+type AuthenticateRes struct {
+	SessionID string `json:"sessionId"`
+}
 
 // AuthenticationHandler handles authentication requests
 type AuthenticationHandler struct {
-	sessionPool *SessionPool
+	sessionPool session.Pool
 	dal         *DAL
 }
 
 // NewAuthenticationHandler creates a new authentication handler
-func NewAuthenticationHandler(sessionPool *SessionPool, dal *DAL) *AuthenticationHandler {
+func NewAuthenticationHandler(sessionPool session.Pool, dal *DAL) *AuthenticationHandler {
 	return &AuthenticationHandler{
 		sessionPool: sessionPool,
 		dal:         dal,
@@ -29,24 +32,13 @@ func NewAuthenticationHandler(sessionPool *SessionPool, dal *DAL) *Authenticatio
 }
 
 // Authenticate handles user authentication
-func (h *AuthenticationHandler) Authenticate(sessionID string, args *AuthenticateArgs) (*AuthenticateRes, *Error) {
+func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*AuthenticateRes, error) {
 	// Validate input
 	if args.AccountID == "" {
-		return nil, &Error{Message: "missing account id argument"}
+		return nil, fmt.Errorf("missing account id argument")
 	}
 	if args.AccessToken == "" {
-		return nil, &Error{Message: "missing access token argument"}
-	}
-
-	// Get session
-	session, exists := h.sessionPool.GetSession(sessionID)
-	if !exists {
-		return nil, &Error{Message: "session not found"}
-	}
-
-	// Check if session is already authenticated with a different account
-	if session.Authenticated && session.AccountID != args.AccountID {
-		return nil, &Error{Message: "connection already assigned to another account"}
+		return nil, fmt.Errorf("missing access token argument")
 	}
 
 	// Check if account exists
@@ -70,24 +62,26 @@ func (h *AuthenticationHandler) Authenticate(sessionID string, args *Authenticat
 			}
 			createErr := h.dal.CreateAccount(account, initialState)
 			if createErr != nil {
-				return nil, &Error{Message: fmt.Sprintf("failed to create account: %v", createErr)}
+				return nil, fmt.Errorf("failed to create account: %v", createErr)
 			}
 			accessToken = args.AccessToken
 		} else {
-			return nil, &Error{Message: fmt.Sprintf("failed to get account: %v", err)}
+			return nil, fmt.Errorf("failed to get account: %v", err)
 		}
 	}
 
 	// Validate access token
 	if accessToken != args.AccessToken {
-		return nil, &Error{Message: "Invalid access token"}
+		return nil, fmt.Errorf("invalid access token")
 	}
 
-	// Authenticate session
-	authErr := h.sessionPool.AuthenticateSession(sessionID, args.AccountID)
-	if authErr != nil {
-		return nil, &Error{Message: fmt.Sprintf("failed to authenticate session: %v", authErr)}
+	// Get session
+	sess, err := h.sessionPool.CreateSession(args.AccountID, SessionState{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create session: %v", err)
 	}
 
-	return &AuthenticateRes{}, nil
+	return &AuthenticateRes{
+		SessionID: sess.ID,
+	}, nil
 }

@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"technical-test-backend/internal/session"
+)
+
 // GetConfigsArgs represents get configs request
 type GetConfigsArgs struct{}
 
@@ -10,12 +15,12 @@ type GetConfigsRes struct {
 
 // ConfigHandler handles configuration requests
 type ConfigHandler struct {
-	sessionPool *SessionPool
+	sessionPool session.Pool
 	configs     *ConfigsProvider
 }
 
 // NewConfigHandler creates a new config handler
-func NewConfigHandler(sessionPool *SessionPool, configs *ConfigsProvider) *ConfigHandler {
+func NewConfigHandler(sessionPool session.Pool, configs *ConfigsProvider) *ConfigHandler {
 	return &ConfigHandler{
 		sessionPool: sessionPool,
 		configs:     configs,
@@ -23,11 +28,11 @@ func NewConfigHandler(sessionPool *SessionPool, configs *ConfigsProvider) *Confi
 }
 
 // GetConfigs retrieves game configuration
-func (h *ConfigHandler) GetConfigs(sessionID string, args *GetConfigsArgs) (*GetConfigsRes, *Error) {
+func (h *ConfigHandler) GetConfigs(sessionID string, args *GetConfigsArgs) (*GetConfigsRes, error) {
 	// Check authentication
 	_, authenticated := h.sessionPool.GetAccountID(sessionID)
 	if !authenticated {
-		return nil, &Error{Message: "connection not authenticated"}
+		return nil, fmt.Errorf("connection not authenticated")
 	}
 
 	// Get configs

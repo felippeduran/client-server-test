@@ -3,13 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
+	sessionmemory "technical-test-backend/internal/session/memory"
 	"time"
 )
 
 // Example usage of the core functionality
 func main() {
 	// Create dependencies
-	sessionPool := NewSessionPool()
+	sessionPool, close := sessionmemory.CreateSessionPool(sessionmemory.SessionPoolConfig{
+		TTL: 30 * time.Second,
+	})
+	defer close()
+
 	dal := NewDAL()
 	configs := NewConfigsProvider()
 
@@ -19,27 +24,20 @@ func main() {
 	configHandler := NewConfigHandler(sessionPool, configs)
 	commandHandler := NewCommandHandler(sessionPool, dal, configs)
 
-	// Example: Create a session
-	session, err := sessionPool.CreateSession()
-	if err != nil {
-		log.Fatalf("Failed to create session: %v", err)
-	}
-	fmt.Printf("Created session: %s\n", session.ID)
-
 	// Example: Authenticate
 	authArgs := &AuthenticateArgs{
 		AccountID:   "test-account-123",
 		AccessToken: "test-token-456",
 	}
 
-	authRes, authErr := authHandler.Authenticate(session.ID, authArgs)
+	authRes, authErr := authHandler.Authenticate(authArgs)
 	if authErr != nil {
 		log.Fatalf("Authentication failed: %v", authErr)
 	}
 	fmt.Printf("Authentication successful: %+v\n", authRes)
 
 	// Example: Get player state
-	playerStateRes, playerStateErr := stateHandler.GetPlayerState(session.ID, &GetPlayerStateArgs{})
+	playerStateRes, playerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &GetPlayerStateArgs{})
 	if playerStateErr != nil {
 		log.Fatalf("Get player state failed: %v", playerStateErr)
 	}
@@ -48,7 +46,7 @@ func main() {
 		playerStateRes.PlayerState.Persistent.Energy.CurrentAmount)
 
 	// Example: Get configs
-	configsRes, configsErr := configHandler.GetConfigs(session.ID, &GetConfigsArgs{})
+	configsRes, configsErr := configHandler.GetConfigs(authRes.SessionID, &GetConfigsArgs{})
 	if configsErr != nil {
 		log.Fatalf("Get configs failed: %v", configsErr)
 	}
@@ -62,7 +60,7 @@ func main() {
 		Now:     time.Now(),
 	}
 
-	beginErr := commandHandler.HandleCommand(session.ID, beginLevelCmd)
+	beginErr := commandHandler.HandleCommand(authRes.SessionID, beginLevelCmd)
 	if beginErr != nil {
 		log.Fatalf("Begin level command failed: %v", beginErr)
 	}
@@ -74,14 +72,14 @@ func main() {
 		Score:   100,
 	}
 
-	endErr := commandHandler.HandleCommand(session.ID, endLevelCmd)
+	endErr := commandHandler.HandleCommand(authRes.SessionID, endLevelCmd)
 	if endErr != nil {
 		log.Fatalf("End level command failed: %v", endErr)
 	}
 	fmt.Println("End level command executed successfully")
 
 	// Example: Get updated player state
-	updatedPlayerStateRes, updatedPlayerStateErr := stateHandler.GetPlayerState(session.ID, &GetPlayerStateArgs{})
+	updatedPlayerStateRes, updatedPlayerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &GetPlayerStateArgs{})
 	if updatedPlayerStateErr != nil {
 		log.Fatalf("Get updated player state failed: %v", updatedPlayerStateErr)
 	}
@@ -94,7 +92,5 @@ func main() {
 		sessionPool.GetSessionCount(),
 		dal.GetAccountCount())
 
-	// Cleanup
-	sessionPool.Stop()
 	fmt.Println("Server stopped")
 }

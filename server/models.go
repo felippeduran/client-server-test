@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -75,26 +76,6 @@ type LevelConfig struct {
 	EnergyReward int `json:"energyReward"`
 }
 
-// Error represents an error response
-type Error struct {
-	Message string `json:"message"`
-}
-
-// Error implements the error interface
-func (e *Error) Error() string {
-	return e.Message
-}
-
-// Session represents an active user session
-type Session struct {
-	ID             string    `json:"id"`
-	AccountID      string    `json:"accountId"`
-	Authenticated  bool      `json:"authenticated"`
-	LastActivity   time.Time `json:"lastActivity"`
-	CreatedAt      time.Time `json:"createdAt"`
-	CurrentLevelID *int      `json:"currentLevelId,omitempty"`
-}
-
 // Command interfaces
 type Command interface {
 	Execute(state *PlayerState, configs *Configs) error
@@ -114,14 +95,14 @@ type BeginLevelCommand struct {
 func (c *BeginLevelCommand) Execute(state *PlayerState, configs *Configs) error {
 	// Check if level is unlocked
 	if !canPlayLevel(state.Persistent.LevelProgression.CurrentLevel, c.LevelID) {
-		return &Error{Message: "level not unlocked"}
+		return fmt.Errorf("level not unlocked")
 	}
 
 	// Check energy requirements
 	levelConfig := configs.Levels[c.LevelID]
 	predictedEnergy := getPredictedEnergyAmount(state.Persistent.Energy, c.Now, configs.Energy)
 	if predictedEnergy < levelConfig.EnergyCost {
-		return &Error{Message: "not enough energy"}
+		return fmt.Errorf("not enough energy")
 	}
 
 	// Update energy
@@ -144,7 +125,7 @@ type EndLevelCommand struct {
 
 func (c *EndLevelCommand) Execute(state *PlayerState, configs *Configs) error {
 	if state.Session.CurrentLevelID == nil {
-		return &Error{Message: "no level in progress"}
+		return fmt.Errorf("no level in progress")
 	}
 
 	currentLevelID := *state.Session.CurrentLevelID
