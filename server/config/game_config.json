@@ -1,0 +1,135 @@
+{
+  "energy": {
+    "maxEnergy": 50,
+    "rechargeIntervalSeconds": 10
+  },
+  "levels": [
+    {},
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 1,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 2,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 5,
+      "targetNumber": 2,
+      "energyReward": 4
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 3,
+      "targetNumber": 2,
+      "energyReward": 7
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 1,
+      "targetNumber": 2,
+      "energyReward": 10
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 3,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 5,
+      "targetNumber": 3,
+      "energyReward": 4
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 3,
+      "targetNumber": 3,
+      "energyReward": 7
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 1,
+      "targetNumber": 3,
+      "energyReward": 10
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 4,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 5,
+      "targetNumber": 4,
+      "energyReward": 4
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 3,
+      "targetNumber": 4,
+      "energyReward": 7
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 1,
+      "targetNumber": 4,
+      "energyReward": 10
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 5,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 5,
+      "targetNumber": 5,
+      "energyReward": 4
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 3,
+      "targetNumber": 5,
+      "energyReward": 7
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 1,
+      "targetNumber": 5,
+      "energyReward": 10
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 10,
+      "targetNumber": 6,
+      "energyReward": 2
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 5,
+      "targetNumber": 6,
+      "energyReward": 4
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 3,
+      "targetNumber": 6,
+      "energyReward": 7
+    },
+    {
+      "energyCost": 1,
+      "maxRolls": 1,
+      "targetNumber": 6,
+      "energyReward": 10
+    }
+  ]
+}

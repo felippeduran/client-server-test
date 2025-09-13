@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"technical-test-backend/internal/configs"
+	"technical-test-backend/internal/core"
 	sessionmemory "technical-test-backend/internal/session/memory"
 	"time"
 )
@@ -16,7 +18,9 @@ func main() {
 	defer close()
 
 	dal := NewDAL()
-	configs := NewConfigsProvider()
+	configs := configs.NewProvider(configs.ProviderConfig{
+		ConfigFilePath: "config/game_config.json",
+	})
 
 	// Create handlers
 	authHandler := NewAuthenticationHandler(sessionPool, dal)
@@ -55,7 +59,7 @@ func main() {
 		configsRes.Configs.Energy.MaxEnergy)
 
 	// Example: Begin level command
-	beginLevelCmd := &BeginLevelCommand{
+	beginLevelCmd := &core.BeginLevelCommand{
 		LevelID: 1,
 		Now:     time.Now(),
 	}
@@ -67,7 +71,7 @@ func main() {
 	fmt.Println("Begin level command executed successfully")
 
 	// Example: End level command
-	endLevelCmd := &EndLevelCommand{
+	endLevelCmd := &core.EndLevelCommand{
 		Success: true,
 		Score:   100,
 	}

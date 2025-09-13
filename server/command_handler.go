@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/configs"
+	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
 )
 
@@ -9,11 +11,11 @@ import (
 type CommandHandler struct {
 	sessionPool session.Pool
 	dal         *DAL
-	configs     *ConfigsProvider
+	configs     *configs.Provider
 }
 
 // NewCommandHandler creates a new command handler
-func NewCommandHandler(sessionPool session.Pool, dal *DAL, configs *ConfigsProvider) *CommandHandler {
+func NewCommandHandler(sessionPool session.Pool, dal *DAL, configs *configs.Provider) *CommandHandler {
 	return &CommandHandler{
 		sessionPool: sessionPool,
 		dal:         dal,
@@ -22,7 +24,7 @@ func NewCommandHandler(sessionPool session.Pool, dal *DAL, configs *ConfigsProvi
 }
 
 // HandleCommand executes a game command
-func (h *CommandHandler) HandleCommand(sessionID string, command Command) error {
+func (h *CommandHandler) HandleCommand(sessionID string, command core.Command) error {
 	// Check authentication
 	accountID, authenticated := h.sessionPool.GetAccountID(sessionID)
 	if !authenticated {
@@ -36,19 +38,22 @@ func (h *CommandHandler) HandleCommand(sessionID string, command Command) error 
 	}
 
 	// Get session state
-	var sessionState SessionState
+	var sessionState core.SessionState
 	if err := h.sessionPool.GetSessionData(sessionID, &sessionState); err != nil {
 		return fmt.Errorf("session not found")
 	}
 
 	// Create player state
-	playerState := PlayerState{
+	playerState := core.PlayerState{
 		Persistent: persistentState,
 		Session:    sessionState,
 	}
 
 	// Get configs
-	configs := h.configs.GetHardcodedConfigs()
+	configs, err := h.configs.GetConfigs()
+	if err != nil {
+		return fmt.Errorf("failed to load configs: %v", err)
+	}
 
 	// Execute command
 	err = command.Execute(&playerState, configs)

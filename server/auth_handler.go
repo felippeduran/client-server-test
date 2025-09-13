@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
 	"time"
 )
@@ -50,14 +51,14 @@ func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*Authentic
 				ID:          args.AccountID,
 				AccessToken: args.AccessToken,
 			}
-			initialState := PersistentState{
-				Energy: Energy{
+			initialState := core.PersistentState{
+				Energy: core.Energy{
 					CurrentAmount:  1,
 					LastRechargeAt: time.Now(),
 				},
-				LevelProgression: LevelProgression{
+				LevelProgression: core.LevelProgression{
 					CurrentLevel: 1,
-					Statistics:   []LevelStats{},
+					Statistics:   []core.LevelStats{},
 				},
 			}
 			createErr := h.dal.CreateAccount(account, initialState)
@@ -76,7 +77,7 @@ func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*Authentic
 	}
 
 	// Get session
-	sess, err := h.sessionPool.CreateSession(args.AccountID, SessionState{})
+	sess, err := h.sessionPool.CreateSession(args.AccountID, core.SessionState{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %v", err)
 	}

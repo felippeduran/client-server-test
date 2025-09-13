@@ -11,7 +11,9 @@ public struct Configs
 public struct EnergyConfig
 {
     public int MaxEnergy;
-    public TimeSpan RechargeInterval;
+    public int RechargeIntervalSeconds;
+    
+    public TimeSpan RechargeInterval => TimeSpan.FromSeconds(RechargeIntervalSeconds);
 }
 
 [Serializable]

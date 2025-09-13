@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
 	"time"
 )
@@ -11,8 +12,8 @@ type GetPlayerStateArgs struct{}
 
 // GetPlayerStateRes represents get player state response
 type GetPlayerStateRes struct {
-	PlayerState PlayerState `json:"playerState"`
-	ServerTime  time.Time   `json:"serverTime"`
+	PlayerState core.PlayerState `json:"playerState"`
+	ServerTime  time.Time        `json:"serverTime"`
 }
 
 // PlayerStateHandler handles player state requests
@@ -44,13 +45,13 @@ func (h *PlayerStateHandler) GetPlayerState(sessionID string, args *GetPlayerSta
 	}
 
 	// Get session state
-	var sessionState SessionState
+	var sessionState core.SessionState
 	if err := h.sessionPool.GetSessionData(sessionID, &sessionState); err != nil {
 		return nil, fmt.Errorf("session not found")
 	}
 
 	// Create player state
-	playerState := PlayerState{
+	playerState := core.PlayerState{
 		Persistent: persistentState,
 		Session:    sessionState,
 	}

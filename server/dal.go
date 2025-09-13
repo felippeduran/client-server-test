@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"technical-test-backend/internal/core"
 )
 
 // DAL (Data Access Layer) manages persistent data in memory
@@ -13,8 +14,8 @@ type DAL struct {
 
 // AccountData contains all persistent data for an account
 type AccountData struct {
-	Account         Account         `json:"account"`
-	PersistentState PersistentState `json:"persistentState"`
+	Account         Account              `json:"account"`
+	PersistentState core.PersistentState `json:"persistentState"`
 }
 
 // NewDAL creates a new data access layer
@@ -25,7 +26,7 @@ func NewDAL() *DAL {
 }
 
 // CreateAccount creates a new account with initial state
-func (d *DAL) CreateAccount(account Account, state PersistentState) error {
+func (d *DAL) CreateAccount(account Account, state core.PersistentState) error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 
@@ -71,13 +72,13 @@ func (d *DAL) GetAccessToken(accountID string) (string, error) {
 }
 
 // GetPersistentState retrieves the persistent state for an account
-func (d *DAL) GetPersistentState(accountID string) (PersistentState, error) {
+func (d *DAL) GetPersistentState(accountID string) (core.PersistentState, error) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
 
 	accountData, exists := d.accounts[accountID]
 	if !exists {
-		return PersistentState{}, fmt.Errorf("account not found")
+		return core.PersistentState{}, fmt.Errorf("account not found")
 	}
 
 	// Return a copy to prevent external modifications
@@ -86,7 +87,7 @@ func (d *DAL) GetPersistentState(accountID string) (PersistentState, error) {
 }
 
 // SetPersistentState updates the persistent state for an account
-func (d *DAL) SetPersistentState(accountID string, state PersistentState) error {
+func (d *DAL) SetPersistentState(accountID string, state core.PersistentState) error {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()
 

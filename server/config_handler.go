@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"technical-test-backend/internal/configs"
+	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
 )
 
@@ -10,17 +12,17 @@ type GetConfigsArgs struct{}
 
 // GetConfigsRes represents get configs response
 type GetConfigsRes struct {
-	Configs Configs `json:"configs"`
+	Configs core.Configs `json:"configs"`
 }
 
 // ConfigHandler handles configuration requests
 type ConfigHandler struct {
 	sessionPool session.Pool
-	configs     *ConfigsProvider
+	configs     *configs.Provider
 }
 
 // NewConfigHandler creates a new config handler
-func NewConfigHandler(sessionPool session.Pool, configs *ConfigsProvider) *ConfigHandler {
+func NewConfigHandler(sessionPool session.Pool, configs *configs.Provider) *ConfigHandler {
 	return &ConfigHandler{
 		sessionPool: sessionPool,
 		configs:     configs,
@@ -36,12 +38,15 @@ func (h *ConfigHandler) GetConfigs(sessionID string, args *GetConfigsArgs) (*Get
 	}
 
 	// Get configs
-	configs := h.configs.GetHardcodedConfigs()
+	configs, err := h.configs.GetConfigs()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load configs: %v", err)
+	}
 
 	// Update activity
 	h.sessionPool.UpdateActivity(sessionID)
 
 	return &GetConfigsRes{
-		Configs: *configs,
+		Configs: configs,
 	}, nil
 }
