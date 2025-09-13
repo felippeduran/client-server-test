@@ -1,4 +1,4 @@
-package main
+package configs
 
 import (
 	"fmt"
@@ -15,22 +15,22 @@ type GetConfigsRes struct {
 	Configs core.Configs `json:"configs"`
 }
 
-// ConfigHandler handles configuration requests
-type ConfigHandler struct {
+// Handler handles configuration requests
+type Handler struct {
 	sessionPool session.Pool
 	configs     *configs.Provider
 }
 
-// NewConfigHandler creates a new config handler
-func NewConfigHandler(sessionPool session.Pool, configs *configs.Provider) *ConfigHandler {
-	return &ConfigHandler{
+// Handler creates a new config handler
+func NewHandler(sessionPool session.Pool, configs *configs.Provider) *Handler {
+	return &Handler{
 		sessionPool: sessionPool,
 		configs:     configs,
 	}
 }
 
 // GetConfigs retrieves game configuration
-func (h *ConfigHandler) GetConfigs(sessionID string, args *GetConfigsArgs) (*GetConfigsRes, error) {
+func (h *Handler) GetConfigs(sessionID string, args *GetConfigsArgs) (*GetConfigsRes, error) {
 	// Check authentication
 	_, authenticated := h.sessionPool.GetAccountID(sessionID)
 	if !authenticated {

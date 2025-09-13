@@ -1,30 +1,28 @@
-package main
+package commands
 
 import (
 	"fmt"
 	"technical-test-backend/internal/configs"
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/usecases/players"
 )
 
-// CommandHandler handles command execution
-type CommandHandler struct {
+type Handler struct {
 	sessionPool session.Pool
-	dal         *DAL
+	dal         players.StateDAL
 	configs     *configs.Provider
 }
 
-// NewCommandHandler creates a new command handler
-func NewCommandHandler(sessionPool session.Pool, dal *DAL, configs *configs.Provider) *CommandHandler {
-	return &CommandHandler{
+func NewHandler(sessionPool session.Pool, dal players.StateDAL, configs *configs.Provider) *Handler {
+	return &Handler{
 		sessionPool: sessionPool,
 		dal:         dal,
 		configs:     configs,
 	}
 }
 
-// HandleCommand executes a game command
-func (h *CommandHandler) HandleCommand(sessionID string, command core.Command) error {
+func (h *Handler) Handle(sessionID string, command core.Command) error {
 	// Check authentication
 	accountID, authenticated := h.sessionPool.GetAccountID(sessionID)
 	if !authenticated {

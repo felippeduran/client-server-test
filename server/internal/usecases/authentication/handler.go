@@ -1,40 +1,35 @@
-package main
+package authentication
 
 import (
 	"fmt"
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/usecases/players"
 	"time"
 )
 
-// AuthenticateArgs represents authentication request
 type AuthenticateArgs struct {
 	AccountID   string `json:"accountId"`
 	AccessToken string `json:"accessToken"`
 }
 
-// AuthenticateRes represents authentication response
 type AuthenticateRes struct {
 	SessionID string `json:"sessionId"`
 }
 
-// AuthenticationHandler handles authentication requests
-type AuthenticationHandler struct {
+type Handler struct {
 	sessionPool session.Pool
-	dal         *DAL
+	dal         players.AccountDAL
 }
 
-// NewAuthenticationHandler creates a new authentication handler
-func NewAuthenticationHandler(sessionPool session.Pool, dal *DAL) *AuthenticationHandler {
-	return &AuthenticationHandler{
+func NewHandler(sessionPool session.Pool, dal players.AccountDAL) *Handler {
+	return &Handler{
 		sessionPool: sessionPool,
 		dal:         dal,
 	}
 }
 
-// Authenticate handles user authentication
-func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*AuthenticateRes, error) {
-	// Validate input
+func (h *Handler) Authenticate(args *AuthenticateArgs) (*AuthenticateRes, error) {
 	if args.AccountID == "" {
 		return nil, fmt.Errorf("missing account id argument")
 	}
@@ -42,28 +37,15 @@ func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*Authentic
 		return nil, fmt.Errorf("missing access token argument")
 	}
 
-	// Check if account exists
 	accessToken, err := h.dal.GetAccessToken(args.AccountID)
 	if err != nil {
-		// Account doesn't exist, create it
 		if err.Error() == "account not found" {
-			account := Account{
+			account := players.Account{
 				ID:          args.AccountID,
 				AccessToken: args.AccessToken,
 			}
-			initialState := core.PersistentState{
-				Energy: core.Energy{
-					CurrentAmount:  1,
-					LastRechargeAt: time.Now(),
-				},
-				LevelProgression: core.LevelProgression{
-					CurrentLevel: 1,
-					Statistics:   []core.LevelStats{},
-				},
-			}
-			createErr := h.dal.CreateAccount(account, initialState)
-			if createErr != nil {
-				return nil, fmt.Errorf("failed to create account: %v", createErr)
+			if err := h.dal.CreateAccount(account, createInitialState()); err != nil {
+				return nil, fmt.Errorf("failed to create account: %v", err)
 			}
 			accessToken = args.AccessToken
 		} else {
@@ -71,12 +53,10 @@ func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*Authentic
 		}
 	}
 
-	// Validate access token
 	if accessToken != args.AccessToken {
 		return nil, fmt.Errorf("invalid access token")
 	}
 
-	// Get session
 	sess, err := h.sessionPool.CreateSession(args.AccountID, core.SessionState{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %v", err)
@@ -85,4 +65,17 @@ func (h *AuthenticationHandler) Authenticate(args *AuthenticateArgs) (*Authentic
 	return &AuthenticateRes{
 		SessionID: sess.ID,
 	}, nil
+}
+
+func createInitialState() core.PersistentState {
+	return core.PersistentState{
+		Energy: core.Energy{
+			CurrentAmount:  1,
+			LastRechargeAt: time.Now(),
+		},
+		LevelProgression: core.LevelProgression{
+			CurrentLevel: 1,
+			Statistics:   []core.LevelStats{},
+		},
+	}
 }

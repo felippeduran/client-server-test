@@ -6,6 +6,11 @@ import (
 	"technical-test-backend/internal/configs"
 	"technical-test-backend/internal/core/commands"
 	sessionmemory "technical-test-backend/internal/session/memory"
+	"technical-test-backend/internal/usecases/authentication"
+	usecasescommands "technical-test-backend/internal/usecases/commands"
+	usecasesconfigs "technical-test-backend/internal/usecases/configs"
+	"technical-test-backend/internal/usecases/players"
+	playersmemory "technical-test-backend/internal/usecases/players/dal/memory"
 	"time"
 )
 
@@ -17,19 +22,19 @@ func main() {
 	})
 	defer close()
 
-	dal := NewDAL()
+	accountsDal := playersmemory.NewDAL()
 	configs := configs.NewProvider(configs.ProviderConfig{
 		ConfigFilePath: "config/game_config.json",
 	})
 
 	// Create handlers
-	authHandler := NewAuthenticationHandler(sessionPool, dal)
-	stateHandler := NewPlayerStateHandler(sessionPool, dal)
-	configHandler := NewConfigHandler(sessionPool, configs)
-	commandHandler := NewCommandHandler(sessionPool, dal, configs)
+	authHandler := authentication.NewHandler(sessionPool, accountsDal)
+	stateHandler := players.NewStateHandler(sessionPool, accountsDal)
+	configHandler := usecasesconfigs.NewHandler(sessionPool, configs)
+	commandHandler := usecasescommands.NewHandler(sessionPool, accountsDal, configs)
 
 	// Example: Authenticate
-	authArgs := &AuthenticateArgs{
+	authArgs := &authentication.AuthenticateArgs{
 		AccountID:   "test-account-123",
 		AccessToken: "test-token-456",
 	}
@@ -41,7 +46,7 @@ func main() {
 	fmt.Printf("Authentication successful: %+v\n", authRes)
 
 	// Example: Get player state
-	playerStateRes, playerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &GetPlayerStateArgs{})
+	playerStateRes, playerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &players.GetPlayerStateArgs{})
 	if playerStateErr != nil {
 		log.Fatalf("Get player state failed: %v", playerStateErr)
 	}
@@ -50,7 +55,7 @@ func main() {
 		playerStateRes.PlayerState.Persistent.Energy.CurrentAmount)
 
 	// Example: Get configs
-	configsRes, configsErr := configHandler.GetConfigs(authRes.SessionID, &GetConfigsArgs{})
+	configsRes, configsErr := configHandler.GetConfigs(authRes.SessionID, &usecasesconfigs.GetConfigsArgs{})
 	if configsErr != nil {
 		log.Fatalf("Get configs failed: %v", configsErr)
 	}
@@ -64,7 +69,7 @@ func main() {
 		Now:     time.Now(),
 	}
 
-	beginErr := commandHandler.HandleCommand(authRes.SessionID, beginLevelCmd)
+	beginErr := commandHandler.Handle(authRes.SessionID, beginLevelCmd)
 	if beginErr != nil {
 		log.Fatalf("Begin level command failed: %v", beginErr)
 	}
@@ -76,14 +81,14 @@ func main() {
 		Score:   100,
 	}
 
-	endErr := commandHandler.HandleCommand(authRes.SessionID, endLevelCmd)
+	endErr := commandHandler.Handle(authRes.SessionID, endLevelCmd)
 	if endErr != nil {
 		log.Fatalf("End level command failed: %v", endErr)
 	}
 	fmt.Println("End level command executed successfully")
 
 	// Example: Get updated player state
-	updatedPlayerStateRes, updatedPlayerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &GetPlayerStateArgs{})
+	updatedPlayerStateRes, updatedPlayerStateErr := stateHandler.GetPlayerState(authRes.SessionID, &players.GetPlayerStateArgs{})
 	if updatedPlayerStateErr != nil {
 		log.Fatalf("Get updated player state failed: %v", updatedPlayerStateErr)
 	}
@@ -92,9 +97,7 @@ func main() {
 		updatedPlayerStateRes.PlayerState.Persistent.Energy.CurrentAmount)
 
 	// Example: Check session pool stats
-	fmt.Printf("Session pool stats: %d active sessions, %d accounts\n",
-		sessionPool.GetSessionCount(),
-		dal.GetAccountCount())
+	fmt.Printf("Session pool stats: %d active sessions, %d accounts\n", sessionPool.GetSessionCount(), accountsDal.GetAccountCount())
 
 	fmt.Println("Server stopped")
 }

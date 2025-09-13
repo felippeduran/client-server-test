@@ -1,4 +1,4 @@
-package main
+package players
 
 // Core data structures matching the C# client models
 
