@@ -4,10 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using TMPro;
+using UseCases.Runtime;
 
 namespace Presentation.Results.Screen
 {
-    public class ResultsScreen : MonoBehaviour
+    public class ResultsScreen : MonoBehaviour, IResultsPresenter
     {
         [SerializeField] private Button continueButton;
         [SerializeField] private TMP_Text resultText;

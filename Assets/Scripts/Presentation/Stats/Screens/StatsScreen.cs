@@ -1,12 +1,15 @@
+using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using Presentation.Stats.Views;
+using UseCases.Runtime;
 
 namespace Presentation.Stats.Screens
 {
-    public class StatsScreen : MonoBehaviour
+    public class StatsScreen : MonoBehaviour, IStatsPresenter
     {
         [SerializeField] private Button closeButton;
         [SerializeField] private StatEntryView statEntryViewPrefab;
@@ -27,7 +30,7 @@ namespace Presentation.Stats.Screens
             }
         }
 
-        public async UniTask OpenAsync(LevelStats[] stats, CancellationToken ct)
+        public async Task OpenAsync(IEnumerable<LevelStats> stats, CancellationToken ct)
         {
             Show();
             Setup(stats);
@@ -35,7 +38,7 @@ namespace Presentation.Stats.Screens
             Hide();
         }
 
-        void Setup(LevelStats[] stats)
+        void Setup(IEnumerable<LevelStats> stats)
         {
             foreach (var stat in stats)
             {

@@ -6,6 +6,7 @@ using Presentation.Gameplay.Presenters;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using UseCases.Runtime;
 
 namespace Presentation.Gameplay.Screen
 {
@@ -33,13 +34,7 @@ namespace Presentation.Gameplay.Screen
         }
     }
 
-    public readonly struct GameplayResult
-    {
-        public bool Won { get; init; }
-        public int Score { get; init; }
-    }
-
-    public class GameplayScreen : MonoBehaviour
+    public class GameplayScreen : MonoBehaviour, IGameplayPresenter
     {
         [SerializeField] private Button rollButton;
         [SerializeField] private RollCounterPresenter rollCounterPresenter;

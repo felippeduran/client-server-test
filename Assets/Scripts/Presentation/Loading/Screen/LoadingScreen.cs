@@ -1,11 +1,22 @@
 using Presentation.Loading.Views;
 using UnityEngine;
+using UseCases.Runtime;
 
 namespace Presentation.Loading.Screen
 {
-    public class LoadingScreen : MonoBehaviour
+    public class LoadingScreen : MonoBehaviour, ILoadingPresenter
     {
         [SerializeField] private LoadingBarPresenter loadingBarPresenter;
+
+        public void Show()
+        {
+            gameObject.SetActive(true);
+        }
+
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+        }
 
         private void OnEnable()
         {

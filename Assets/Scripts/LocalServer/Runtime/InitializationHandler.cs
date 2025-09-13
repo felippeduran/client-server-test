@@ -1,24 +1,5 @@
 using System;
 
-[Serializable]
-public class GetPlayerStateArgs { }
-
-[Serializable]
-public class GetPlayerStateRes
-{
-    public PlayerState PlayerState;
-    public DateTime ServerTime;
-}
-
-[Serializable]
-public class GetConfigsArgs { }
-
-[Serializable]
-public class GetConfigsRes
-{
-    public Configs Configs;
-}
-
 public class InitializationHandler
 {
     readonly IAccountStorage accountStorage;

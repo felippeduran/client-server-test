@@ -2,9 +2,10 @@
     "name": "LocalServer.Runtime",
     "rootNamespace": "LocalServer.Runtime",
     "references": [
+        "Services.Runtime",
         "Networking.Runtime",
         "Utilities.Runtime",
-        "Features.Runtime"
+        "Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

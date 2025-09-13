@@ -5,8 +5,10 @@
         "Networking.Runtime",
         "Presentation",
         "Navigation.Runtime",
-        "Features.Runtime",
+        "Core.Runtime",
         "LocalServer.Runtime",
+        "UseCases.Runtime",
+        "Services.Runtime",
         "Utilities.Runtime",
         "UniTask"
     ],

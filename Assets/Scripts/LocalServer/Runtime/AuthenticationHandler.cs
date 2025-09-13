@@ -1,16 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-[Serializable]
-public class AuthenticateArgs
-{
-    public string AccountId;
-    public string AccessToken;
-}
-
-[Serializable]
-public class AuthenticateRes { }
-
 public class AuthenticationHandler
 {
     readonly IAccountStorage accountStorage;
@@ -19,48 +9,6 @@ public class AuthenticationHandler
     {
         this.accountStorage = accountStorage;
     }
-
-    // [Serializable]
-    // public class CreateAccountArgs
-    // {
-    //     public string AccountId;
-    //     public string AccessToken;
-    // }
-
-    // [Serializable]
-    // public class CreateAccountRes { }
-
-    // [EndpointHandler]
-    // public (CreateAccountArgs, Error) CreateAccount(ConnectionState connState, CreateAccountArgs args)
-    // {
-    //     if (args.AccountId == null)
-    //     {
-    //         return (null, new Error { Message = "missing account id argument" });
-    //     }
-
-    //     if (args.AccessToken == null)
-    //     {
-    //         return (null, new Error { Message = "missing access token argument" });
-    //     }
-
-    //     if (connState.AccountId != args.AccountId)
-    //     {
-    //         return (null, new Error { Message = "connection already assigned to another account" });
-    //     }
-
-    //     var error = CreateAccount(args.AccountId, args.AccessToken);
-    //     if (error != null)
-    //     {
-    //         return (null, error);
-    //     }
-
-    //     connState.AccountId = args.AccountId;
-
-    //     return (new CreateAccountArgs
-    //     {
-    //         AccountId = args.AccountId,
-    //     }, null);
-    // }
 
     [EndpointHandler]
     public (AuthenticateRes, Error) Authenticate(ConnectionState connState, AuthenticateArgs args)

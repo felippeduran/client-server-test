@@ -6,43 +6,12 @@ using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using System;
 using TMPro;
-
-[Serializable]
-public struct MainScreenData
-{
-    public string AccountId;
-    public MainScreenEnergyData EnergyData;
-    public MainScreenLevelData LevelData;
-}
-
-[Serializable]
-public struct MainScreenEnergyData
-{
-    public int EnergyAmount;
-    public TimeSpan NextRechargeIn;
-}
-
-[Serializable]
-public struct MainScreenLevelData
-{
-    public int CurrentLevel;
-    public int EnergyCost;
-    public int EnergyReward;
-    public bool CanPlay;
-}
+using UseCases.Runtime;
 
 namespace Presentation.Main.Screen
 {
-    public class MainScreen : MonoBehaviour
+    public class MainScreen : MonoBehaviour, IMainMenuPresenter
     {
-        public struct Actions
-        {
-            public bool OpenStats;
-            public int ChangeLevelDirection;
-            public bool Refresh;
-            public bool Play;
-        }
-
         [SerializeField] private TMP_Text accountIdText;
         [SerializeField] private TMP_Text energyCostText;
         [SerializeField] private Button statsButton;
