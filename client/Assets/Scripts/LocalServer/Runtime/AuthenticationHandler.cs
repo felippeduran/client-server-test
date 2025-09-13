@@ -23,9 +23,9 @@ public class AuthenticationHandler
             return (null, new Error { Message = "missing access token argument" });
         }
 
-        if (connState.AccountId != null && connState.AccountId != args.AccountId)
+        if (connState.AccountId != null)
         {
-            return (null, new Error { Message = "connection already assigned to another account" });
+            return (null, new Error { Message = "connection already authenticated" });
         }
 
         var (accessToken, error) = accountStorage.GetAccessToken(args.AccountId);

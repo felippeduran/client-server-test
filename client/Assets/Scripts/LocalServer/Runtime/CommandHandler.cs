@@ -1,5 +1,4 @@
 using System;
-using UnityEngine;
 
 public class CommandHandler
 {
@@ -31,7 +30,7 @@ public class CommandHandler
             var timeDifference = Math.Abs((timedCommand.Now - DateTime.UtcNow).TotalMilliseconds);
             if (timeDifference > config.MaxTimeDifferenceMilliseconds)
             {
-                Debug.Log("Synchronized. Time difference: " + timeDifference + "ms");
+                Logger.Log("Synchronized. Time difference: " + timeDifference + "ms");
                 return new Error { Message = "command timestamp is too far" };
             }
         }
@@ -50,12 +49,8 @@ public class CommandHandler
 
         try
         {
-            Debug.Log($"Executing command server side: {command.GetType().Name}");
-            Debug.Log($"Server session state before: {playerState.Session.CurrentLevelId}");
-            Debug.Log($"Server Persistent state before: {playerState.Persistent.LevelProgression.Statistics.Count}");
+            Logger.Log($"Executing command server side: {command.GetType().Name}");
             command.Execute(playerState, ConfigsProvider.GetHardcodedConfigs());
-            Debug.Log($"Server session state after: {playerState.Session.CurrentLevelId}");
-            Debug.Log($"Server Persistent state after: {playerState.Persistent.LevelProgression.Statistics.Count}");
         }
         catch (MetagameException e)
         {
