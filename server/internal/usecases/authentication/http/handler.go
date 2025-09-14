@@ -14,13 +14,11 @@ var (
 	ErrInvalidRequestBody = errors.New("invalid request body")
 )
 
-// Handler handles HTTP requests for authentication
 type Handler struct {
 	authHandler *authentication.Handler
 	sessionPool sessions.Pool
 }
 
-// NewHandler creates a new authentication HTTP handler
 func NewHandler(authHandler *authentication.Handler, sessionPool sessions.Pool) *Handler {
 	return &Handler{
 		authHandler: authHandler,
@@ -28,7 +26,6 @@ func NewHandler(authHandler *authentication.Handler, sessionPool sessions.Pool) 
 	}
 }
 
-// HandleAuthenticate handles the authentication endpoint
 func (h *Handler) HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	var args authentication.AuthenticateArgs
 	if err := httputils.DecodeJSON(r, &args); err != nil {

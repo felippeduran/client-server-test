@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,11 +19,16 @@ public class CommandsHandler
         while (!ct.IsCancellationRequested && commandService.CanSend)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            var command = await commandQueue.WaitForCommandAsync(cts.Token);
-            if (command != null)
+
+            var commandTask = commandQueue.WaitForCommandAsync(cts.Token);
+            var refreshTask = Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+            
+            await Task.WhenAny(commandTask, refreshTask);
+            cts.Cancel();
+
+            if (commandTask.IsCompletedSuccessfully && commandTask.Result != null)
             {
-                // Debug.Log($"Sending command: {command.GetType().Name}");
-                error = await commandService.Send(command, cts.Token);
+                error = await commandService.Send(commandTask.Result, ct);
                 if (error != null)
                 {
                     break;

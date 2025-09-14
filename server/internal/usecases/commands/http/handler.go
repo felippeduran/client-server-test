@@ -11,13 +11,11 @@ import (
 	usecasescommands "technical-test-backend/internal/usecases/commands"
 )
 
-// Handler handles HTTP requests for commands
 type Handler struct {
 	commandHandler *usecasescommands.Handler
 	sessionsData   sessions.Data
 }
 
-// NewHandler creates a new commands HTTP handler
 func NewHandler(commandHandler *usecasescommands.Handler, sessionsData sessions.Data) *Handler {
 	return &Handler{
 		commandHandler: commandHandler,
@@ -25,11 +23,9 @@ func NewHandler(commandHandler *usecasescommands.Handler, sessionsData sessions.
 	}
 }
 
-// HandleCommand handles the command endpoint
 func (h *Handler) HandleCommand(w http.ResponseWriter, r *http.Request) {
 	accountID := r.Header.Get("X-Account-ID")
 
-	// Parse the command from JSON
 	var commandArgs usecasescommands.CommandArgs
 	if err := httputils.DecodeJSON(r, &commandArgs); err != nil {
 		httputils.WriteError(w, http.StatusBadRequest, "invalid request body")
@@ -73,7 +69,6 @@ func (h *Handler) HandleCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return empty response on success (matching Unity client expectations)
 	httputils.WriteJSON(w, http.StatusOK, map[string]interface{}{})
 }
 

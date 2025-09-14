@@ -6,19 +6,16 @@ import (
 	usecasesconfigs "technical-test-backend/internal/usecases/configs"
 )
 
-// Handler handles HTTP requests for configs
 type Handler struct {
 	configHandler *usecasesconfigs.Handler
 }
 
-// NewHandler creates a new configs HTTP handler
 func NewHandler(configHandler *usecasesconfigs.Handler) *Handler {
 	return &Handler{
 		configHandler: configHandler,
 	}
 }
 
-// HandleGetConfigs handles the get configs endpoint
 func (h *Handler) HandleGetConfigs(w http.ResponseWriter, r *http.Request) {
 	var args usecasesconfigs.GetConfigsArgs
 	if err := httputils.DecodeJSON(r, &args); err != nil {

@@ -33,6 +33,7 @@ public class CommandService : ICommandService
             Command = command.GetType().Name.Replace("Command", string.Empty),
             Data = command,
         };
+        Logger.Log("Sending command: " + args.Command);
         return await client.SendMessage($"CommandHandler/HandleCommand", args, ct);
     }
 }

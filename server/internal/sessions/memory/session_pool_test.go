@@ -444,7 +444,6 @@ func TestConcurrentAccess(t *testing.T) {
 		var wg sync.WaitGroup
 		errors := make(chan error, numOperations*2)
 
-		// Concurrent reads
 		for range numOperations {
 			wg.Add(1)
 			go func() {
@@ -458,7 +457,6 @@ func TestConcurrentAccess(t *testing.T) {
 			}()
 		}
 
-		// Concurrent writes
 		for i := range numOperations {
 			wg.Add(1)
 			go func(level int) {
@@ -471,7 +469,6 @@ func TestConcurrentAccess(t *testing.T) {
 		wg.Wait()
 		close(errors)
 
-		// Check for errors
 		for err := range errors {
 			assert.NoError(t, err)
 		}

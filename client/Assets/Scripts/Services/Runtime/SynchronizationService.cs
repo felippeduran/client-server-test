@@ -53,13 +53,16 @@ public class SynchronizationService : ISynchronizationService
 
         var tasks = new List<Task> { stateTask, configsTask };
 
-        float GetProgress()
+        void UpdateProgress(Error error)
         {
-            return tasks.Sum(x => x.IsCompleted ? 1f : 0f) / tasks.Count;
+            if (error == null)
+            {
+                progressSetter(tasks.Sum(x => x.IsCompleted ? 1f : 0f) / tasks.Count);
+            }
         }
 
-        var _ = stateTask.ContinueWith(t => progressSetter(GetProgress()), TaskContinuationOptions.OnlyOnRanToCompletion);
-        var __ = configsTask.ContinueWith(t => progressSetter(GetProgress()), TaskContinuationOptions.OnlyOnRanToCompletion);
+        var _ = stateTask.ContinueWith(t => UpdateProgress(t.Result.Error), TaskContinuationOptions.OnlyOnRanToCompletion);
+        var __ = configsTask.ContinueWith(t => UpdateProgress(t.Result.Error), TaskContinuationOptions.OnlyOnRanToCompletion);
 
         await Task.WhenAll(tasks);
 

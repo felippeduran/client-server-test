@@ -10,6 +10,8 @@
         "UseCases.Runtime",
         "Services.Runtime",
         "Utilities.Runtime",
+        "LocalServer.Debug",
+        "Core.Debug",
         "UniTask"
     ],
     "includePlatforms": [],

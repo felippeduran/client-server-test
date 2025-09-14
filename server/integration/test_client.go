@@ -167,7 +167,6 @@ func (tc *TestClient) EndLevel(sessionID string, success bool, score int) error 
 	return nil
 }
 
-// Helper error type for HTTP status errors
 type httpError struct {
 	StatusCode int
 	Message    string

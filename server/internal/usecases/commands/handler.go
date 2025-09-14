@@ -56,37 +56,31 @@ func (h *Handler) Handle(sessionData SessionData, command core.Command) error {
 		}
 	}
 
-	// Get persistent state
 	persistentState, err := h.dal.GetPersistentState(sessionData.AccountID)
 	if err != nil {
 		return fmt.Errorf("failed to get persistent state: %v", err)
 	}
 
-	// Create player state
 	playerState := core.PlayerState{
 		Persistent: &persistentState,
 		Session:    sessionData.SessionState,
 	}
 
-	// Get configs
 	configs, err := h.configsProvider.GetConfigs()
 	if err != nil {
 		return fmt.Errorf("failed to load configs: %v", err)
 	}
 
-	// Execute command
 	err = command.Execute(&playerState, configs)
 	if err != nil {
 		return errors.Wrap(err, ErrCommandExecutionFailure)
 	}
 
-	// Update persistent state
 	err = h.dal.SetPersistentState(sessionData.AccountID, *playerState.Persistent)
 	if err != nil {
 		return fmt.Errorf("failed to save persistent state: %v", err)
 	}
 
-	// Update session state
 	sessionData.SessionState.CurrentLevelID = playerState.Session.CurrentLevelID
 
 	return nil

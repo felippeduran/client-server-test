@@ -74,6 +74,7 @@ func (d *DAL) SetPersistentState(accountID string, state core.PersistentState) e
 	}
 
 	accountData.PersistentState = state
+	d.accounts[accountID] = accountData
 	return nil
 }
 

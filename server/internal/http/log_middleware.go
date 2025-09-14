@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-// ResponseRecorder captures the response body
 type ResponseRecorder struct {
 	http.ResponseWriter
 	statusCode int
@@ -19,13 +18,11 @@ func (r *ResponseRecorder) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 }
 
-// Write captures the data written to the ResponseWriter
 func (r *ResponseRecorder) Write(b []byte) (int, error) {
 	r.body.Write(b)
 	return r.ResponseWriter.Write(b)
 }
 
-// GetBody returns the captured response body
 func (r *ResponseRecorder) GetBody() string {
 	return r.body.String()
 }

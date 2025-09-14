@@ -12,7 +12,7 @@ func main() {
 	app := app.NewHTTP(app.Config{
 		Port: 8080,
 		SessionPool: memory.SessionPoolConfig{
-			TTL: 30 * time.Second,
+			TTL: 10 * time.Second,
 		},
 		ConfigProvider: configs.ProviderConfig{
 			FilePath: "../../config/game_config.json",

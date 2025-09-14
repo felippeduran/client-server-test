@@ -12,6 +12,7 @@ import (
 	commandshttp "technical-test-backend/internal/usecases/commands/http"
 	"technical-test-backend/internal/usecases/configs"
 	configshttp "technical-test-backend/internal/usecases/configs/http"
+	heartbeathttp "technical-test-backend/internal/usecases/heartbeat/http"
 	playersmemory "technical-test-backend/internal/usecases/players/dal/memory"
 	playershttp "technical-test-backend/internal/usecases/players/http"
 	"time"
@@ -42,11 +43,11 @@ func (a *HTTP) Run() {
 	accountsDal := playersmemory.NewDAL()
 	configsProvider := configs.NewProvider(a.config.ConfigProvider)
 
-	// Create handlers
 	authHandler := authenticationhttp.CreateHTTPHandler(sessionPool, accountsDal)
 	stateHandler := playershttp.CreateHTTPHandler(sessionPool, accountsDal)
 	configHandler := configshttp.CreateHTTPHandler(configsProvider)
 	commandHandler := commandshttp.CreateHTTPHandler(a.config.Commands, sessionPool, accountsDal, configsProvider)
+	heartbeatHandler := heartbeathttp.CreateHTTPHandler(sessionPool)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", httputils.LogMiddleware(handleHealth))
@@ -56,6 +57,7 @@ func (a *HTTP) Run() {
 	mux.HandleFunc("POST /InitializationHandler/GetPlayerState", httputils.LogMiddleware(authMiddleware.Middleware(stateHandler.HandleGetPlayerState)))
 	mux.HandleFunc("POST /InitializationHandler/GetConfigs", httputils.LogMiddleware(authMiddleware.Middleware(configHandler.HandleGetConfigs)))
 	mux.HandleFunc("POST /CommandHandler/HandleCommand", httputils.LogMiddleware(authMiddleware.Middleware(commandHandler.HandleCommand)))
+	mux.HandleFunc("POST /HeartbeatHandler/Heartbeat", httputils.LogMiddleware(authMiddleware.Middleware(heartbeatHandler.HandleHeartbeat)))
 
 	a.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", a.config.Port),

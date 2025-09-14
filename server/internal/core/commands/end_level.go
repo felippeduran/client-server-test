@@ -20,7 +20,6 @@ func (c *EndLevel) Execute(state *core.PlayerState, configs core.Configs) error 
 
 	stats := findOrCreateLevelStats(&state.Persistent.LevelProgression, currentLevelID)
 
-	// Update statistics
 	if c.Success && c.Score > stats.BestScore {
 		stats.BestScore = c.Score
 	}
@@ -32,7 +31,6 @@ func (c *EndLevel) Execute(state *core.PlayerState, configs core.Configs) error 
 
 	updateLevelStats(&state.Persistent.LevelProgression, stats)
 
-	// Advance level if successful
 	if c.Success {
 		if currentLevelID == state.Persistent.LevelProgression.CurrentLevel {
 			state.Persistent.LevelProgression.CurrentLevel = currentLevelID + 1
@@ -40,7 +38,6 @@ func (c *EndLevel) Execute(state *core.PlayerState, configs core.Configs) error 
 		state.Persistent.Energy.CurrentAmount += levelConfig.EnergyReward
 	}
 
-	// Clear current level
 	state.Session.CurrentLevelID = nil
 
 	return nil

@@ -2,6 +2,7 @@ package memory
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
 	"technical-test-backend/internal/errors"
 	"technical-test-backend/internal/sessions"
@@ -21,7 +22,6 @@ type SessionPoolConfig struct {
 	TTL time.Duration
 }
 
-// SessionPool manages active user sessions
 type SessionPool struct {
 	sessions              map[string]sessions.Session
 	sessionsData          map[string]json.RawMessage
@@ -31,7 +31,6 @@ type SessionPool struct {
 	config                SessionPoolConfig
 }
 
-// NewSessionPool creates a new session pool
 func NewSessionPool(config SessionPoolConfig) *SessionPool {
 	sp := &SessionPool{
 		sessions:              make(map[string]sessions.Session),
@@ -44,7 +43,6 @@ func NewSessionPool(config SessionPoolConfig) *SessionPool {
 	return sp
 }
 
-// CreateSession creates a new session
 func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessions.Session, error) {
 	sess := sessions.Session{
 		ID:           uuid.New().String(),
@@ -55,6 +53,11 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
+
+	if existingSessionID, exists := sp.sessionIDsByAccountID[accountID]; exists {
+		log.Printf("Removed existing session: %s", existingSessionID)
+		sp.removeSessionImpl(existingSessionID)
+	}
 
 	sp.sessions[sess.ID] = sess
 	sp.accountIDsBySessionID[sess.ID] = accountID
@@ -67,10 +70,11 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 
 	sp.sessionsData[sess.ID] = rawData
 
+	log.Printf("Created session: %s", sess.ID)
+
 	return sess, nil
 }
 
-// GetSession retrieves a session by ID
 func (sp *SessionPool) GetSession(sessionID string) (sessions.Session, bool) {
 	sp.mutex.RLock()
 	defer sp.mutex.RUnlock()
@@ -127,7 +131,6 @@ func (sp *SessionPool) SetSessionData(accountID string, data interface{}) error 
 	return nil
 }
 
-// UpdateActivity updates the last activity time for a session
 func (sp *SessionPool) UpdateActivity(sessionID string) error {
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
@@ -146,24 +149,17 @@ func (sp *SessionPool) UpdateActivity(sessionID string) error {
 	return nil
 }
 
-// RemoveSession removes a session
 func (sp *SessionPool) RemoveSession(sessionID string) {
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
 
-	session, exists := sp.sessions[sessionID]
-	if !exists {
+	if _, exists := sp.sessions[sessionID]; !exists {
 		return
 	}
 
-	// Remove from sessions map
-	delete(sp.sessions, sessionID)
-	delete(sp.sessionsData, sessionID)
-	delete(sp.sessionIDsByAccountID, session.AccountID)
-	delete(sp.accountIDsBySessionID, sessionID)
+	sp.removeSessionImpl(sessionID)
 }
 
-// GetAccountID returns the account ID for a session
 func (sp *SessionPool) GetAccountID(sessionID string) (string, bool) {
 	sp.mutex.RLock()
 	defer sp.mutex.RUnlock()
@@ -180,7 +176,6 @@ func (sp *SessionPool) GetAccountID(sessionID string) (string, bool) {
 	return sess.AccountID, true
 }
 
-// CleanupExpiredSessions removes expired sessions
 func (sp *SessionPool) CleanupExpiredSessions() {
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
@@ -188,24 +183,26 @@ func (sp *SessionPool) CleanupExpiredSessions() {
 	now := time.Now()
 	var expiredSessions []string
 
-	// Find expired sessions
 	for sessionID, session := range sp.sessions {
 		if now.After(session.LastActivity.Add(sp.config.TTL)) {
 			expiredSessions = append(expiredSessions, sessionID)
 		}
 	}
 
-	// Remove expired sessions
 	for _, sessionID := range expiredSessions {
-		session := sp.sessions[sessionID]
-		delete(sp.sessions, sessionID)
-		delete(sp.sessionsData, sessionID)
-		delete(sp.sessionIDsByAccountID, session.AccountID)
-		delete(sp.accountIDsBySessionID, sessionID)
+		sp.removeSessionImpl(sessionID)
+		log.Printf("Removed expired session: %s", sessionID)
 	}
 }
 
-// GetSessionCount returns the number of active sessions
+func (sp *SessionPool) removeSessionImpl(sessionID string) {
+	session := sp.sessions[sessionID]
+	delete(sp.sessions, sessionID)
+	delete(sp.sessionsData, sessionID)
+	delete(sp.sessionIDsByAccountID, session.AccountID)
+	delete(sp.accountIDsBySessionID, sessionID)
+}
+
 func (sp *SessionPool) GetSessionCount() int {
 	sp.mutex.RLock()
 	defer sp.mutex.RUnlock()

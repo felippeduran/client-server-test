@@ -9,13 +9,11 @@ import (
 	"technical-test-backend/internal/usecases/players"
 )
 
-// Handler handles HTTP requests for players
 type Handler struct {
 	stateHandler *players.StateHandler
 	sessionPool  sessions.Pool
 }
 
-// NewHandler creates a new players HTTP handler
 func NewHandler(stateHandler *players.StateHandler, sessionPool sessions.Pool) *Handler {
 	return &Handler{
 		stateHandler: stateHandler,
@@ -23,7 +21,6 @@ func NewHandler(stateHandler *players.StateHandler, sessionPool sessions.Pool) *
 	}
 }
 
-// HandleGetPlayerState handles the get player state endpoint
 func (h *Handler) HandleGetPlayerState(w http.ResponseWriter, r *http.Request) {
 	accountID := r.Header.Get("X-Account-ID")
 
