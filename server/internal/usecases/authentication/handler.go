@@ -51,7 +51,7 @@ func (h *Handler) Authenticate(args *AuthenticateArgs) (*AuthenticateRes, error)
 func createInitialState() core.PersistentState {
 	return core.PersistentState{
 		Energy: core.Energy{
-			CurrentAmount:  1,
+			CurrentAmount:  5,
 			LastRechargeAt: time.Now().UTC(),
 		},
 		LevelProgression: core.LevelProgression{

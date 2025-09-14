@@ -66,7 +66,7 @@ namespace LocalServer.Runtime
             {
                 Energy = new Energy
                 {
-                    CurrentAmount = 1,
+                    CurrentAmount = 5,
                     LastRechargeAt = DateTime.UtcNow
                 },
                 LevelProgression = new LevelProgression
