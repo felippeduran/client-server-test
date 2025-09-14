@@ -1,3 +1,6 @@
+using System;
+
+[Serializable]
 public class EndLevelCommand : ICommand
 {
     public bool Success { get; set; }
@@ -14,7 +17,8 @@ public class EndLevelCommand : ICommand
 
         if (!state.Persistent.LevelProgression.Statistics.TryGetValue(new LevelStats { LevelId = currentLevelId }, out var stats))
         {
-            stats = new LevelStats {
+            stats = new LevelStats
+            {
                 LevelId = currentLevelId,
                 Wins = 0,
                 Losses = 0,

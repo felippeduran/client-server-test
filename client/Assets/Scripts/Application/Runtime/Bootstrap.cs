@@ -6,24 +6,45 @@ using UseCases.Runtime;
 
 namespace Application.Runtime
 {
+    [Serializable]
+    public struct AppConfig
+    {
+        public string BaseUrl;
+        public bool UseConnectivity;
+        public ConnectivityClientDecorator.Config ConnectivityConfig;
+        public bool UseFakeServer;
+    }
+
     public class Bootstrap : MonoBehaviour
     {
         [SerializeField] ScreensLibrary screensLibrary;
-        [SerializeField] ConnectivityClientDecorator.Config connectivityConfig;
+        [SerializeField] AppConfig connectivityConfig;
 
         private async void Start()
         {
             Logger.Instance = new UnityLogger();
             Logger.Log("Starting Bootstrap");
 
-            var accountStorage = new InMemoryAccounts();
-            var server = FakeServerFactory.CreateServer<ConnectionState>(new object[] {
+            IClient client;
+            if (connectivityConfig.UseFakeServer)
+            {
+                var accountStorage = new InMemoryAccounts();
+                var server = FakeServerFactory.CreateServer<ConnectionState>(new object[] {
                 new AuthenticationHandler(accountStorage),
                 new CommandHandler(new CommandHandler.Config { MaxTimeDifferenceMilliseconds = 1000 }, accountStorage),
-                new InitializationHandler(accountStorage),
-            });
+                    new InitializationHandler(accountStorage),
+                });
+                client = new FakeClient(server);
+            }
+            else
+            {
+                client = new HttpClient(connectivityConfig.BaseUrl);
+            }
 
-            var client = new ConnectivityClientDecorator(connectivityConfig, new FakeClient(server));
+            if (connectivityConfig.UseConnectivity)
+            {
+                client = new ConnectivityClientDecorator(connectivityConfig.ConnectivityConfig, client);
+            }
 
             var commandService = new CommandService(client);
             var authenticationService = new AuthenticationService(client);
@@ -60,14 +81,21 @@ namespace Application.Runtime
 
                 var coreLoopUseCase = new CoreLoopUseCase(new MainMenuUseCase(screensLibrary), new GameplayUseCase(screensLibrary));
 
-                var coreLoopContext = new Context {
+                var coreLoopContext = new Context
+                {
                     CommandExecutor = executionQueue,
                     PlayerState = synchronized.player,
                     Clock = synchronized.clock,
                     Configs = synchronized.configs,
                 };
 
-                var coreLoopTask = coreLoopUseCase.HandleCoreLoopAsync(coreLoopContext, cts.Token).ContinueWith<Error>(t => null);
+                async Task<Error> HandleCoreLoopAsync(Context context, CancellationToken ct)
+                {
+                    await coreLoopUseCase.HandleCoreLoopAsync(context, ct);
+                    return null;
+                }
+
+                var coreLoopTask = HandleCoreLoopAsync(coreLoopContext, cts.Token);
 
                 var completedTask = await Task.WhenAny(commandsTask, coreLoopTask);
 

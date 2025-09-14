@@ -1,5 +1,6 @@
 using System;
 
+[Serializable]
 public class BeginLevelCommand : ITimedCommand
 {
     public int LevelId { get; set; }

@@ -15,7 +15,10 @@ public class AuthenticateArgs
 }
 
 [Serializable]
-public class AuthenticateRes { }
+public class AuthenticateRes
+{ 
+    public string SessionId;
+}
 
 public class AuthenticationService : IAuthenticationService
 {
@@ -28,7 +31,7 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Error> AuthenticateAsync(Account account, CancellationToken ct)
     {
-        var (_, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken }, ct);
+        var (res, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken }, ct);
         if (error != null)
         {
             return error;

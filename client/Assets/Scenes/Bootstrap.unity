@@ -684,8 +684,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screensLibrary: {fileID: 1944796723}
   connectivityConfig:
-    FailureRate: 0
-    RTTSeconds: 0.6
+    BaseUrl: http://localhost:8080
+    UseConnectivity: 1
+    ConnectivityConfig:
+      FailureRate: 0
+      RTTSeconds: 0.3
+    UseFakeServer: 0
 --- !u!114 &2096625944 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7544389898273819585, guid: 92b6819d4271f4a0f9ab11806568edce, type: 3}
@@ -875,7 +879,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3342328570688356306, guid: bf7d5e4fd20d84dfca75e471baa6a009, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -10.0000305
+      value: -10.000008
       objectReference: {fileID: 0}
     - target: {fileID: 3355469844408378302, guid: bf7d5e4fd20d84dfca75e471baa6a009, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1456,6 +1460,10 @@ PrefabInstance:
     - target: {fileID: 3509058398579312885, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4375424631761375365, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -79.91075
       objectReference: {fileID: 0}
     - target: {fileID: 6144958540197862511, guid: 11ec15d6247da4be68ee3753733b2452, type: 3}
       propertyPath: m_SizeDelta.y

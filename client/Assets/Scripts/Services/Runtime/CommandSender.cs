@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -5,6 +6,13 @@ public interface ICommandService
 {
     bool CanSend { get; }
     Task<Error> Send(ICommand command, CancellationToken ct);
+}
+
+[Serializable]
+public struct CommandArgs
+{
+    public string Command;
+    public object Data;
 }
 
 public class CommandService : ICommandService
@@ -20,6 +28,11 @@ public class CommandService : ICommandService
 
     public async Task<Error> Send(ICommand command, CancellationToken ct)
     {
-        return await client.SendMessage($"CommandHandler/HandleCommand", command, ct);
+        var args = new CommandArgs
+        {
+            Command = command.GetType().Name.Replace("Command", string.Empty),
+            Data = command,
+        };
+        return await client.SendMessage($"CommandHandler/HandleCommand", args, ct);
     }
 }

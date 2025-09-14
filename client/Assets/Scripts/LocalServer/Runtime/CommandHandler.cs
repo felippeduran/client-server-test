@@ -18,13 +18,14 @@ public class CommandHandler
     }
 
     [EndpointHandler]
-    public Error HandleCommand(ConnectionState connState, ICommand command)
+    public Error HandleCommand(ConnectionState connState, CommandArgs args)
     {
         if (connState.AccountId == null)
         {
             return new Error { Message = "connection not authenticated" };
         }
 
+        var command = (ICommand)args.Data;
         if (command is ITimedCommand timedCommand)
         {
             var timeDifference = Math.Abs((timedCommand.Now - DateTime.UtcNow).TotalMilliseconds);
