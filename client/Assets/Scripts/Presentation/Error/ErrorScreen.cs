@@ -19,7 +19,7 @@ namespace Presentation.Error.Screen
             errorLabel.text = error;
             this.buttonLabel.text = buttonLabel;
             gameObject.SetActive(true);
-            await closeButton.OnClickAsync(ct);
+            await closeButton.OnClickAsync(ct).SuppressCancellationThrow();
             gameObject.SetActive(false);
         }
     }

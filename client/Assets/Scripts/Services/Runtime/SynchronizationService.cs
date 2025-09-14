@@ -58,8 +58,8 @@ public class SynchronizationService : ISynchronizationService
             return tasks.Sum(x => x.IsCompleted ? 1f : 0f) / tasks.Count;
         }
 
-        var _ = stateTask.ContinueWith(t => progressSetter(GetProgress()));
-        var __ = configsTask.ContinueWith(t => progressSetter(GetProgress()));
+        var _ = stateTask.ContinueWith(t => progressSetter(GetProgress()), TaskContinuationOptions.OnlyOnRanToCompletion);
+        var __ = configsTask.ContinueWith(t => progressSetter(GetProgress()), TaskContinuationOptions.OnlyOnRanToCompletion);
 
         await Task.WhenAll(tasks);
 

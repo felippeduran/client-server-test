@@ -41,16 +41,6 @@ namespace Presentation.Gameplay.Screen
         [SerializeField] private TargetNumberPresenter targetNumberPresenter;
         [SerializeField] private DicePresenter dicePresenter;
 
-        private void OnEnable()
-        {
-            rollButton.onClick.AddListener(OnRollButtonClicked);
-        }
-
-        private void OnDisable()
-        {
-            rollButton.onClick.RemoveAllListeners();
-        }
-
         public void Init(int maxRolls, int targetNumber)
         {
             rollCounterPresenter.Init(maxRolls);
@@ -67,30 +57,44 @@ namespace Presentation.Gameplay.Screen
             var victoryTask = WaitForVictoryAsync(ct);
             var lossTask = WaitForLossAsync(ct);
 
-            var (_, won, _) = await UniTask.WhenAny(victoryTask, lossTask);
+            var (_, won, lost) = await UniTask.WhenAny(victoryTask, lossTask);
 
             rollButton.interactable = false;
 
-            await Task.Delay(TimeSpan.FromSeconds(0.7f));
+            if (won || lost)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(0.7f), ct);
+            }
 
             gameObject.SetActive(false);
             return new GameplayResult
             {
+                Completed = !ct.IsCancellationRequested,
                 Won = won,
                 Score = rollCounterPresenter.RemainingRolls,
             };
         }
 
+        private void OnEnable()
+        {
+            rollButton.onClick.AddListener(OnRollButtonClicked);
+        }
+
+        private void OnDisable()
+        {
+            rollButton.onClick.RemoveAllListeners();
+        }
+
         private async UniTask<bool> WaitForVictoryAsync(CancellationToken ct)
         {
-            await UniTask.WaitUntil(HasWon, cancellationToken: ct);
-            return true;
+            await UniTask.WaitUntil(HasWon, cancellationToken: ct).SuppressCancellationThrow();
+            return !ct.IsCancellationRequested;
         }
 
         private async UniTask<bool> WaitForLossAsync(CancellationToken ct)
         {
-            await UniTask.WaitUntil(HasLost, cancellationToken: ct);
-            return true;
+            await UniTask.WaitUntil(HasLost, cancellationToken: ct).SuppressCancellationThrow();
+            return !ct.IsCancellationRequested;
         }
 
         private bool HasWon()

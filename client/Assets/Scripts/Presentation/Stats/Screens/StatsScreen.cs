@@ -34,7 +34,7 @@ namespace Presentation.Stats.Screens
         {
             Show();
             Setup(stats);
-            await closeButton.OnClickAsync(ct);
+            await closeButton.OnClickAsync(ct).SuppressCancellationThrow();
             Hide();
         }
 

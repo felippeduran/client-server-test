@@ -19,8 +19,11 @@ public class HttpClient : IClient
 
     public Task<Error> ConnectAsync(CancellationToken ct)
     {
-        httpClient = new System.Net.Http.HttpClient();
-        httpClient.BaseAddress = new Uri(baseUrl);
+        httpClient = new System.Net.Http.HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(5),
+            BaseAddress = new Uri(baseUrl),
+        };
 
         return Task.FromResult(null as Error);
     }
@@ -36,20 +39,28 @@ public class HttpClient : IClient
         var body = JsonSerializer.Serialize(args, GetJsonSerializerOptions());
         var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync(message, content, ct);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return (default(TResult), new Error { Message = "failed to send message" });
-        }
+            var response = await httpClient.PostAsync(message, content, ct);
 
-        if (response.Headers.TryGetValues("X-Session-Id", out var sessionIdValues))
+            if (!response.IsSuccessStatusCode)
+            {
+                return (default(TResult), new Error { Message = "failed to send message" });
+            }
+
+            if (response.Headers.TryGetValues("X-Session-Id", out var sessionIdValues))
+            {
+                httpClient.DefaultRequestHeaders.Add("X-Session-Id", sessionIdValues);
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<TResult>(responseContent, GetJsonSerializerOptions());
+            return (result, null);
+        }
+        catch (Exception e)
         {
-            httpClient.DefaultRequestHeaders.Add("X-Session-Id", sessionIdValues);
+            return (default(TResult), new Error { Message = e.Message });
         }
-
-        var responseContent = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<TResult>(responseContent, GetJsonSerializerOptions());
-        return (result, null);
     }
 
     public async Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
@@ -57,18 +68,25 @@ public class HttpClient : IClient
         var body = JsonSerializer.Serialize(args, GetJsonSerializerOptions());
         var content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync(message, content, ct);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return new Error { Message = "failed to send message" };
-        }
+            var response = await httpClient.PostAsync(message, content, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                return new Error { Message = "failed to send message" };
+            }
 
-        if (response.Headers.TryGetValues("X-Session-Id", out var sessionIdValues))
+            if (response.Headers.TryGetValues("X-Session-Id", out var sessionIdValues))
+            {
+                httpClient.DefaultRequestHeaders.Add("X-Session-Id", sessionIdValues);
+            }
+
+            return null;
+        }
+        catch (Exception e)
         {
-            httpClient.DefaultRequestHeaders.Add("X-Session-Id", sessionIdValues);
+            return new Error { Message = e.Message };
         }
-
-        return null;
     }
 
     static JsonSerializerOptions GetJsonSerializerOptions()

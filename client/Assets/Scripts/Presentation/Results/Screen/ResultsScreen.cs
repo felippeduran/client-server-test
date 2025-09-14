@@ -18,7 +18,7 @@ namespace Presentation.Results.Screen
             resultText.text = won ? "WIN" : "LOSE";
 
             gameObject.SetActive(true);
-            await continueButton.OnClickAsync(ct);
+            await continueButton.OnClickAsync(ct).SuppressCancellationThrow();
             gameObject.SetActive(false);
             return true;
         }

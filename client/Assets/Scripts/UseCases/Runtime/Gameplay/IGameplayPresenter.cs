@@ -5,6 +5,7 @@ namespace UseCases.Runtime
 {
     public readonly struct GameplayResult
     {
+        public bool Completed { get; init; }
         public bool Won { get; init; }
         public int Score { get; init; }
     }
