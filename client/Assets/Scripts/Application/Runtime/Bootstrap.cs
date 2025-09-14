@@ -51,7 +51,8 @@ namespace Application.Runtime
             var synchronizationService = new SynchronizationService(client);
             var connectionHandler = new ConnectionHandler(client, authenticationService, synchronizationService);
 
-            var account = new Account { Id = Guid.NewGuid().ToString(), AccessToken = Guid.NewGuid().ToString() };
+            var accountLoader = new AccountLoader();
+            var account = accountLoader.Load();
 
             var ct = UnityEngine.Application.exitCancellationToken;
             while (!ct.IsCancellationRequested)
