@@ -1,10 +1,13 @@
 using System;
 
-[Serializable]
-public struct Config
+namespace Networking.Runtime.Http
 {
-    public string BaseUrl;
-    public TimeSpan Timeout;
-    public bool UseConnectivity;
-    public ConnectivityHttpMessageHandler.ConnectivityConfig Connectivity;
+    [Serializable]
+    public struct Config
+    {
+        public string BaseUrl;
+        public TimeSpan Timeout;
+        public bool UseConnectivity;
+        public ConnectivityHttpMessageHandler.ConnectivityConfig Connectivity;
+    }
 }

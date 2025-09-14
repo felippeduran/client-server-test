@@ -1,8 +1,12 @@
 using System;
+using Core.Runtime;
 
-[Serializable]
-public class ConnectionState
+namespace LocalServer.Runtime
 {
-    public string AccountId;
-    public SessionState SessionState;
+    [Serializable]
+    public class ConnectionState
+    {
+        public string AccountId;
+        public SessionState SessionState;
+    }
 }

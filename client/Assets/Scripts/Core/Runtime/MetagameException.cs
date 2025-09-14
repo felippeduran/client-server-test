@@ -1,6 +1,9 @@
 using System;
 
-public class MetagameException : Exception
+namespace Core.Runtime
 {
-    public MetagameException(string description) : base(description) { }
+    public class MetagameException : Exception
+    {
+        public MetagameException(string description) : base(description) { }
+    }
 }

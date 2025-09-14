@@ -1,28 +1,31 @@
 using System;
 
-[Serializable]
-public class Error
+namespace Networking.Runtime
 {
-    public string Message { get; init; }
-
-    public static bool operator ==(Error left, Error right) => Equals(left, right);
-    public static bool operator !=(Error left, Error right) => !Equals(left, right);
-
-    protected bool Equals(Error other)
+    [Serializable]
+    public class Error
     {
-        return Message == other.Message;
-    }
+        public string Message { get; init; }
 
-    public override bool Equals(object obj)
-    {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        if (obj.GetType() != GetType()) return false;
-        return Equals((Error)obj);
-    }
+        public static bool operator ==(Error left, Error right) => Equals(left, right);
+        public static bool operator !=(Error left, Error right) => !Equals(left, right);
 
-    public override int GetHashCode()
-    {
-        return (Message != null ? Message.GetHashCode() : 0);
+        protected bool Equals(Error other)
+        {
+            return Message == other.Message;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != GetType()) return false;
+            return Equals((Error)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Message != null ? Message.GetHashCode() : 0);
+        }
     }
 }

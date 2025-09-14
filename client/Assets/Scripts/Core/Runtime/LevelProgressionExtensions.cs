@@ -1,9 +1,12 @@
 using System;
 
-public static class LevelProgressionExtensions
+namespace Core.Runtime
 {
-    public static bool CanPlayLevel(this LevelProgression progression, int levelId)
+    public static class LevelProgressionExtensions
     {
-        return levelId <= progression.CurrentLevel;
+        public static bool CanPlayLevel(this LevelProgression progression, int levelId)
+        {
+            return levelId <= progression.CurrentLevel;
+        }
     }
 }

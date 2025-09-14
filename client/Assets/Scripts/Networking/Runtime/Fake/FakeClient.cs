@@ -2,53 +2,56 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public interface IFakeServerHandler<TConnState>
+namespace Networking.Runtime.Fake
 {
-    (TResult, Error) HandleMessage<TArgs, TResult>(TConnState connState, string message, TArgs args);
-    Error HandleMessage<TArgs>(TConnState connState, string message, TArgs args);
-}
-
-public class FakeClient : IClient
-{
-    private readonly IFakeServer fakeServer;
-    private int connectionId = -1;
-
-    public bool IsConnected => connectionId != -1;
-
-    public FakeClient(IFakeServer fakeServer)
+    public interface IFakeServerHandler<TConnState>
     {
-        this.fakeServer = fakeServer;
+        (TResult, Error) HandleMessage<TArgs, TResult>(TConnState connState, string message, TArgs args);
+        Error HandleMessage<TArgs>(TConnState connState, string message, TArgs args);
     }
 
-    public Task<Error> ConnectAsync(CancellationToken ct)
+    public class FakeClient : IClient
     {
-        connectionId = fakeServer.CreateConnection();
-        return Task.FromResult(null as Error);
-    }
+        private readonly IFakeServer fakeServer;
+        private int connectionId = -1;
 
-    public void Disconnect()
-    {
-        fakeServer.RemoveConnection(connectionId);
-        connectionId = -1;
-    }
+        public bool IsConnected => connectionId != -1;
 
-    public Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args, CancellationToken ct)
-    {
-        if (!IsConnected)
+        public FakeClient(IFakeServer fakeServer)
         {
-            throw new InvalidOperationException("Client is not connected");
+            this.fakeServer = fakeServer;
         }
 
-        return Task.FromResult(fakeServer.ReceiveMessage<TArgs, TResult>(connectionId, message, args));
-    }
-
-    public Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
-    {
-        if (!IsConnected)
+        public Task<Error> ConnectAsync(CancellationToken ct)
         {
-            throw new InvalidOperationException("Client is not connected");
+            connectionId = fakeServer.CreateConnection();
+            return Task.FromResult(null as Error);
         }
 
-        return Task.FromResult(fakeServer.ReceiveMessage(connectionId, message, args));
+        public void Disconnect()
+        {
+            fakeServer.RemoveConnection(connectionId);
+            connectionId = -1;
+        }
+
+        public Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args, CancellationToken ct)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("Client is not connected");
+            }
+
+            return Task.FromResult(fakeServer.ReceiveMessage<TArgs, TResult>(connectionId, message, args));
+        }
+
+        public Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
+        {
+            if (!IsConnected)
+            {
+                throw new InvalidOperationException("Client is not connected");
+            }
+
+            return Task.FromResult(fakeServer.ReceiveMessage(connectionId, message, args));
+        }
     }
 }

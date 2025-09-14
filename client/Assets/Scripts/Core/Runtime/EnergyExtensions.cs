@@ -1,31 +1,34 @@
 using System;
 
-public static class EnergyExtensions
+namespace Core.Runtime
 {
-    public static int GetPredictedAmount(this IReadOnlyEnergy energy, DateTime now, EnergyConfig energyConfig)
+    public static class EnergyExtensions
     {
-        var lastRechargeAt = energy.LastRechargeAt;
-        var timeSinceLastRecharge = now - lastRechargeAt;
-        var predictedEnergy = energy.CurrentAmount + (int)(timeSinceLastRecharge.TotalSeconds / energyConfig.RechargeInterval.TotalSeconds);
-        return Math.Min(predictedEnergy, energyConfig.MaxEnergy);
-    }
-
-    public static TimeSpan GetTimeRemainingForNextRecharge(this IReadOnlyEnergy energy, DateTime now, EnergyConfig energyConfig)
-    {
-        if (energy.GetPredictedAmount(now, energyConfig) == energyConfig.MaxEnergy)
+        public static int GetPredictedAmount(this IReadOnlyEnergy energy, DateTime now, EnergyConfig energyConfig)
         {
-            return TimeSpan.Zero;
+            var lastRechargeAt = energy.LastRechargeAt;
+            var timeSinceLastRecharge = now - lastRechargeAt;
+            var predictedEnergy = energy.CurrentAmount + (int)(timeSinceLastRecharge.TotalSeconds / energyConfig.RechargeInterval.TotalSeconds);
+            return Math.Min(predictedEnergy, energyConfig.MaxEnergy);
         }
 
-        return energyConfig.RechargeInterval - TimeSpan.FromSeconds((now - energy.LastRechargeAt).TotalSeconds % energyConfig.RechargeInterval.TotalSeconds);
-    }
+        public static TimeSpan GetTimeRemainingForNextRecharge(this IReadOnlyEnergy energy, DateTime now, EnergyConfig energyConfig)
+        {
+            if (energy.GetPredictedAmount(now, energyConfig) == energyConfig.MaxEnergy)
+            {
+                return TimeSpan.Zero;
+            }
 
-    public static void UpdateEnergy(this Energy energy, DateTime now, EnergyConfig energyConfig)
-    {
-        var timeSinceLastRecharge = now - energy.LastRechargeAt;
-        var recharges = (int)(timeSinceLastRecharge / energyConfig.RechargeInterval);
+            return energyConfig.RechargeInterval - TimeSpan.FromSeconds((now - energy.LastRechargeAt).TotalSeconds % energyConfig.RechargeInterval.TotalSeconds);
+        }
 
-        energy.CurrentAmount = GetPredictedAmount(energy, now, energyConfig);
-        energy.LastRechargeAt += recharges * energyConfig.RechargeInterval;
+        public static void UpdateEnergy(this Energy energy, DateTime now, EnergyConfig energyConfig)
+        {
+            var timeSinceLastRecharge = now - energy.LastRechargeAt;
+            var recharges = (int)(timeSinceLastRecharge / energyConfig.RechargeInterval);
+
+            energy.CurrentAmount = GetPredictedAmount(energy, now, energyConfig);
+            energy.LastRechargeAt += recharges * energyConfig.RechargeInterval;
+        }
     }
 }

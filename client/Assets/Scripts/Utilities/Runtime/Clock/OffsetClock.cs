@@ -1,16 +1,19 @@
 using System;
 
-public class OffsetClock : IClock
+namespace Utilities.Runtime.Clock
 {
-    readonly TimeSpan timeOffset;
-
-    public OffsetClock(DateTime serverUtcNow)
+    public class OffsetClock : IClock
     {
-        timeOffset = DateTime.UtcNow - serverUtcNow;
-    }
+        readonly TimeSpan timeOffset;
 
-    public DateTime Now()
-    {
-        return DateTime.UtcNow + timeOffset;
+        public OffsetClock(DateTime serverUtcNow)
+        {
+            timeOffset = DateTime.UtcNow - serverUtcNow;
+        }
+
+        public DateTime Now()
+        {
+            return DateTime.UtcNow + timeOffset;
+        }
     }
 }

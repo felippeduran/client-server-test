@@ -3,83 +3,86 @@ using System;
 using System.Reflection;
 using System.Linq;
 
-public interface IHandler<TConnState>
+namespace Networking.Runtime.Fake
 {
-    (TRes, Error) Handle<TArgs, TRes>(TConnState connState, string message,TArgs args);
-}
-
-public class FakeServerHandler<TConnState> : IFakeServerHandler<TConnState>
-{
-    readonly Dictionary<string, (MethodInfo, object)> handlersByEndpoint = new();
-
-    public FakeServerHandler(object[] handlers)
+    public interface IHandler<TConnState>
     {
-        foreach (var handler in handlers)
+        (TRes, Error) Handle<TArgs, TRes>(TConnState connState, string message, TArgs args);
+    }
+
+    public class FakeServerHandler<TConnState> : IFakeServerHandler<TConnState>
+    {
+        readonly Dictionary<string, (MethodInfo, object)> handlersByEndpoint = new();
+
+        public FakeServerHandler(object[] handlers)
         {
-            var handlerType = handler.GetType();
-            var methods = handlerType.GetMethods().Where(m => m.GetCustomAttribute<EndpointHandlerAttribute>() != null);
-            foreach (var method in methods)
+            foreach (var handler in handlers)
             {
-                if (method.GetParameters().Length != 2)
+                var handlerType = handler.GetType();
+                var methods = handlerType.GetMethods().Where(m => m.GetCustomAttribute<EndpointHandlerAttribute>() != null);
+                foreach (var method in methods)
                 {
-                    throw new Exception($"Method {method.Name} must have exactly two parameters");
+                    if (method.GetParameters().Length != 2)
+                    {
+                        throw new Exception($"Method {method.Name} must have exactly two parameters");
+                    }
+
+                    var connStateType = method.GetParameters()[0].ParameterType;
+                    if (!connStateType.IsAssignableFrom(typeof(TConnState)))
+                    {
+                        throw new Exception($"Method {method.Name} must have a parameter of type {typeof(TConnState)}");
+                    }
+
+                    var attribute = method.GetCustomAttribute<EndpointHandlerAttribute>();
+                    var methodName = attribute.ResolveMethodName(method);
+
+                    handlersByEndpoint[$"{handlerType.Name}/{methodName}"] = (method, handler);
                 }
-
-                var connStateType = method.GetParameters()[0].ParameterType;
-                if (!connStateType.IsAssignableFrom(typeof(TConnState)))
-                {
-                    throw new Exception($"Method {method.Name} must have a parameter of type {typeof(TConnState)}");
-                }
-
-                var attribute = method.GetCustomAttribute<EndpointHandlerAttribute>();
-                var methodName = attribute.ResolveMethodName(method);
-
-                handlersByEndpoint[$"{handlerType.Name}/{methodName}"] = (method, handler);
             }
         }
-    }
 
-    public (TResult, Error) HandleMessage<TArgs, TResult>(TConnState connState, string message, TArgs args)
-    {
-        if (!handlersByEndpoint.TryGetValue(message, out var handlerData))
+        public (TResult, Error) HandleMessage<TArgs, TResult>(TConnState connState, string message, TArgs args)
         {
-            return (default, new Error { Message = "handler not found" });
+            if (!handlersByEndpoint.TryGetValue(message, out var handlerData))
+            {
+                return (default, new Error { Message = "handler not found" });
+            }
+
+            var validConnStateType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TConnState));
+            if (!validConnStateType)
+            {
+                return (default, new Error { Message = "invalid connection state type" });
+            }
+
+            var validArgType = handlerData.Item1.GetParameters()[1].ParameterType.IsAssignableFrom(typeof(TArgs));
+            if (!validArgType)
+            {
+                return (default, new Error { Message = "invalid args type" });
+            }
+
+            return ((TResult, Error))handlerData.Item1.Invoke(handlerData.Item2, new object[] { connState, args });
         }
 
-        var validConnStateType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TConnState));
-        if (!validConnStateType)
+        public Error HandleMessage<TArgs>(TConnState connState, string message, TArgs args)
         {
-            return (default, new Error { Message = "invalid connection state type" });
+            if (!handlersByEndpoint.TryGetValue(message, out var handlerData))
+            {
+                return new Error { Message = "handler not found" };
+            }
+
+            var validConnStateType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TConnState));
+            if (!validConnStateType)
+            {
+                return new Error { Message = "invalid connection state type" };
+            }
+
+            var validArgType = handlerData.Item1.GetParameters()[1].ParameterType.IsAssignableFrom(typeof(TArgs));
+            if (!validArgType)
+            {
+                return new Error { Message = "invalid args type" };
+            }
+
+            return (Error)handlerData.Item1.Invoke(handlerData.Item2, new object[] { connState, args });
         }
-
-        var validArgType = handlerData.Item1.GetParameters()[1].ParameterType.IsAssignableFrom(typeof(TArgs));
-        if (!validArgType)
-        {
-            return (default, new Error { Message = "invalid args type" });
-        }
-
-        return ((TResult, Error))handlerData.Item1.Invoke(handlerData.Item2, new object[] { connState, args });
-    }
-
-    public Error HandleMessage<TArgs>(TConnState connState, string message, TArgs args)
-    {
-        if (!handlersByEndpoint.TryGetValue(message, out var handlerData))
-        {
-            return new Error { Message = "handler not found" };
-        }
-
-        var validConnStateType = handlerData.Item1.GetParameters()[0].ParameterType.IsAssignableFrom(typeof(TConnState));
-        if (!validConnStateType)
-        {
-            return new Error { Message = "invalid connection state type" };
-        }
-
-        var validArgType = handlerData.Item1.GetParameters()[1].ParameterType.IsAssignableFrom(typeof(TArgs));
-        if (!validArgType)
-        {
-            return new Error { Message = "invalid args type" };
-        }
-
-        return (Error)handlerData.Item1.Invoke(handlerData.Item2, new object[] { connState, args });
     }
 }

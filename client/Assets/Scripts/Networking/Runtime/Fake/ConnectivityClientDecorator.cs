@@ -2,78 +2,81 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class ConnectivityClientDecorator : IClient
+namespace Networking.Runtime.Fake
 {
-    [Serializable]
-    public struct Config
+    public class ConnectivityClientDecorator : IClient
     {
-        public double FailureRate;
-        public double RTTSeconds;
-    }
-
-    readonly Random random = new();
-    readonly Config config;
-    readonly IClient client;
-
-    public bool IsConnected => client.IsConnected;
-
-    public ConnectivityClientDecorator(Config config, IClient client)
-    {
-        this.config = config;
-        this.client = client;
-    }
-
-    public async Task<Error> ConnectAsync(CancellationToken ct)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
-
-        if (random.NextDouble() < config.FailureRate)
+        [Serializable]
+        public struct Config
         {
-            return new Error { Message = "connection failed" };
+            public double FailureRate;
+            public double RTTSeconds;
         }
 
-        var error = await client.ConnectAsync(ct);
+        readonly Random random = new();
+        readonly Config config;
+        readonly IClient client;
 
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+        public bool IsConnected => client.IsConnected;
 
-        return error;
-    }
-
-    public void Disconnect()
-    {
-        client.Disconnect();
-    }
-
-    public async Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args, CancellationToken ct)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
-
-        if (random.NextDouble() < config.FailureRate)
+        public ConnectivityClientDecorator(Config config, IClient client)
         {
-            return (default, new Error { Message = "message failed" });
+            this.config = config;
+            this.client = client;
         }
 
-        var (result, error) = await client.SendMessage<TArgs, TResult>(message, args, ct);
-
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
-
-        return (result, error);
-    }
-
-    public async Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
-    {
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
-
-        if (random.NextDouble() < config.FailureRate)
+        public async Task<Error> ConnectAsync(CancellationToken ct)
         {
-            return new Error { Message = "message failed" };
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+
+            if (random.NextDouble() < config.FailureRate)
+            {
+                return new Error { Message = "connection failed" };
+            }
+
+            var error = await client.ConnectAsync(ct);
+
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+
+            return error;
         }
 
-        var error = await client.SendMessage(message, args, ct);
+        public void Disconnect()
+        {
+            client.Disconnect();
+        }
 
-        await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+        public async Task<(TResult, Error)> SendMessage<TArgs, TResult>(string message, TArgs args, CancellationToken ct)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
 
-        return error;
+            if (random.NextDouble() < config.FailureRate)
+            {
+                return (default, new Error { Message = "message failed" });
+            }
+
+            var (result, error) = await client.SendMessage<TArgs, TResult>(message, args, ct);
+
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+
+            return (result, error);
+        }
+
+        public async Task<Error> SendMessage<TArgs>(string message, TArgs args, CancellationToken ct)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+
+            if (random.NextDouble() < config.FailureRate)
+            {
+                return new Error { Message = "message failed" };
+            }
+
+            var error = await client.SendMessage(message, args, ct);
+
+            await Task.Delay(TimeSpan.FromSeconds(config.RTTSeconds / 2), ct);
+
+            return error;
+        }
+
     }
-
 }

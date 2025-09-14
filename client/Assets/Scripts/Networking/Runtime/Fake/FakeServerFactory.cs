@@ -1,8 +1,11 @@
-public class FakeServerFactory
+namespace Networking.Runtime.Fake
 {
-    public static IFakeServer CreateServer<TConnState>(object[] handlers) where TConnState : new()
+    public class FakeServerFactory
     {
-        var serverHandler = new FakeServerHandler<TConnState>(handlers);
-        return new FakeServer<TConnState>(serverHandler);
+        public static IFakeServer CreateServer<TConnState>(object[] handlers) where TConnState : new()
+        {
+            var serverHandler = new FakeServerHandler<TConnState>(handlers);
+            return new FakeServer<TConnState>(serverHandler);
+        }
     }
 }

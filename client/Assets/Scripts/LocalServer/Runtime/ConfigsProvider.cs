@@ -1,13 +1,16 @@
 using System;
+using Core.Runtime;
 
-public static class ConfigsProvider
+namespace LocalServer.Runtime
 {
-    public static Configs GetHardcodedConfigs()
+    public static class ConfigsProvider
     {
-        return new Configs
+        public static Configs GetHardcodedConfigs()
         {
-            Energy = new EnergyConfig { MaxEnergy = 50, RechargeIntervalSeconds = 10 },
-            Levels = new LevelConfig[] {
+            return new Configs
+            {
+                Energy = new EnergyConfig { MaxEnergy = 50, RechargeIntervalSeconds = 10 },
+                Levels = new LevelConfig[] {
                 new LevelConfig { },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 1, EnergyReward = 2 },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 2, EnergyReward = 2 },
@@ -31,6 +34,7 @@ public static class ConfigsProvider
                 new LevelConfig { EnergyCost = 1, MaxRolls = 3, TargetNumber = 6, EnergyReward = 7 },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 1, TargetNumber = 6, EnergyReward = 10 },
             },
-        };
+            };
+        }
     }
 }

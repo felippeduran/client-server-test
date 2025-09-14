@@ -1,59 +1,66 @@
 using System;
+using Core.Runtime;
+using Networking.Runtime.Fake;
+using Networking.Runtime;
+using Services.Runtime;
 
-public class InitializationHandler
+namespace LocalServer.Runtime
 {
-    readonly IAccountStorage accountStorage;
-
-    public InitializationHandler(IAccountStorage accountStorage)
+    public class InitializationHandler
     {
-        this.accountStorage = accountStorage;
-    }
+        readonly IAccountStorage accountStorage;
 
-    [EndpointHandler]
-    public (GetPlayerStateRes, Error) GetPlayerState(ConnectionState connState, GetPlayerStateArgs args)
-    {
-        if (connState.AccountId == null)
+        public InitializationHandler(IAccountStorage accountStorage)
         {
-            return (null, new Error { Message = "connection not authenticated" });
+            this.accountStorage = accountStorage;
         }
 
-        var (playerState, error) = accountStorage.GetPersistentState(connState.AccountId);
-        if (error != null)
+        [EndpointHandler]
+        public (GetPlayerStateRes, Error) GetPlayerState(ConnectionState connState, GetPlayerStateArgs args)
         {
-            return (null, error);
-        }
-
-        return (new GetPlayerStateRes
-        {
-            PlayerState = new PlayerState
+            if (connState.AccountId == null)
             {
-                Persistent = playerState,
-                Session = connState.SessionState,
-            },
-            ServerTime = DateTime.UtcNow,
-        }, null);
-    }
+                return (null, new Error { Message = "connection not authenticated" });
+            }
 
-    [EndpointHandler]
-    public (GetConfigsRes, Error) GetConfigs(ConnectionState connState, GetConfigsArgs args)
-    {
-        if (connState.AccountId == null)
-        {
-            return (null, new Error { Message = "connection not authenticated" });
+            var (playerState, error) = accountStorage.GetPersistentState(connState.AccountId);
+            if (error != null)
+            {
+                return (null, error);
+            }
+
+            return (new GetPlayerStateRes
+            {
+                PlayerState = new PlayerState
+                {
+                    Persistent = playerState,
+                    Session = connState.SessionState,
+                },
+                ServerTime = DateTime.UtcNow,
+            }, null);
         }
 
-        return (new GetConfigsRes { Configs = ConfigsProvider.GetHardcodedConfigs() }, null);
-    }
+        [EndpointHandler]
+        public (GetConfigsRes, Error) GetConfigs(ConnectionState connState, GetConfigsArgs args)
+        {
+            if (connState.AccountId == null)
+            {
+                return (null, new Error { Message = "connection not authenticated" });
+            }
 
-    [Serializable]
-    public class BeginLevelArgs
-    {
-        public int LevelId;
-    }
+            return (new GetConfigsRes { Configs = ConfigsProvider.GetHardcodedConfigs() }, null);
+        }
 
-    [Serializable]
-    public class BeginLevelRes
-    {
-        public int LevelId;
+        [Serializable]
+        public class BeginLevelArgs
+        {
+            public int LevelId;
+        }
+
+        [Serializable]
+        public class BeginLevelRes
+        {
+            public int LevelId;
+        }
     }
 }

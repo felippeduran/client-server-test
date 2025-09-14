@@ -1,70 +1,78 @@
 using System;
+using Core.Runtime;
+using Networking.Runtime.Fake;
+using Networking.Runtime;
+using Services.Runtime;
+using Utilities.Runtime.Logging;
 
-public class CommandHandler
+namespace LocalServer.Runtime
 {
-    [Serializable]
-    public struct Config
+    public class CommandHandler
     {
-        public double MaxTimeDifferenceMilliseconds;
-    }
-
-    readonly Config config;
-    readonly IAccountStorage accountStorage;
-
-    public CommandHandler(Config config, IAccountStorage accountStorage)
-    {
-        this.config = config;
-        this.accountStorage = accountStorage;
-    }
-
-    [EndpointHandler]
-    public Error HandleCommand(ConnectionState connState, CommandArgs args)
-    {
-        if (connState.AccountId == null)
+        [Serializable]
+        public struct Config
         {
-            return new Error { Message = "connection not authenticated" };
+            public double MaxTimeDifferenceMilliseconds;
         }
 
-        var command = (ICommand)args.Data;
-        if (command is ITimedCommand timedCommand)
+        readonly Config config;
+        readonly IAccountStorage accountStorage;
+
+        public CommandHandler(Config config, IAccountStorage accountStorage)
         {
-            var timeDifference = Math.Abs((timedCommand.Now - DateTime.UtcNow).TotalMilliseconds);
-            if (timeDifference > config.MaxTimeDifferenceMilliseconds)
+            this.config = config;
+            this.accountStorage = accountStorage;
+        }
+
+        [EndpointHandler]
+        public Error HandleCommand(ConnectionState connState, CommandArgs args)
+        {
+            if (connState.AccountId == null)
             {
-                Logger.Log("Synchronized. Time difference: " + timeDifference + "ms");
-                return new Error { Message = "command timestamp is too far" };
+                return new Error { Message = "connection not authenticated" };
             }
-        }
 
-        var (persistentState, error) = accountStorage.GetPersistentState(connState.AccountId);
-        if (error != null)
-        {
-            return error;
-        }
+            var command = (ICommand)args.Data;
+            if (command is ITimedCommand timedCommand)
+            {
+                var timeDifference = Math.Abs((timedCommand.Now - DateTime.UtcNow).TotalMilliseconds);
+                if (timeDifference > config.MaxTimeDifferenceMilliseconds)
+                {
+                    Logger.Log("Synchronized. Time difference: " + timeDifference + "ms");
+                    return new Error { Message = "command timestamp is too far" };
+                }
+            }
 
-        var playerState = new PlayerState
-        {
-            Persistent = persistentState,
-            Session = connState.SessionState,
-        };
+            var (persistentState, error) = accountStorage.GetPersistentState(connState.AccountId);
+            if (error != null)
+            {
+                return error;
+            }
 
-        try
-        {
-            Logger.Log($"Executing command server side: {command.GetType().Name}");
-            command.Execute(playerState, ConfigsProvider.GetHardcodedConfigs());
-        }
-        catch (MetagameException e)
-        {
-            return new Error { Message = e.Message };
-        }
+            var playerState = new PlayerState
+            {
+                Persistent = persistentState,
+                Session = connState.SessionState,
+            };
 
-        connState.SessionState = playerState.Session;
-        error = accountStorage.SetPersistentState(connState.AccountId, playerState.Persistent);
-        if (error != null)
-        {
-            return error;
-        }
+            try
+            {
+                Logger.Log($"Executing command server side: {command.GetType().Name}");
+                command.Execute(playerState, ConfigsProvider.GetHardcodedConfigs());
+            }
+            catch (MetagameException e)
+            {
+                return new Error { Message = e.Message };
+            }
 
-        return null;
+            connState.SessionState = playerState.Session;
+            error = accountStorage.SetPersistentState(connState.AccountId, playerState.Persistent);
+            if (error != null)
+            {
+                return error;
+            }
+
+            return null;
+        }
     }
 }

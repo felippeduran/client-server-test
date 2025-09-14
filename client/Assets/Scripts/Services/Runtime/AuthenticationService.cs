@@ -1,42 +1,47 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Networking.Runtime;
+using Core.Runtime;
 
-public interface IAuthenticationService
+namespace Services.Runtime
 {
-    Task<Error> AuthenticateAsync(Account account, CancellationToken ct);
-}
-
-[Serializable]
-public class AuthenticateArgs
-{
-    public string AccountId;
-    public string AccessToken;
-}
-
-[Serializable]
-public class AuthenticateRes
-{ 
-    public string SessionId;
-}
-
-public class AuthenticationService : IAuthenticationService
-{
-    readonly IClient client;
-
-    public AuthenticationService(IClient client)
+    public interface IAuthenticationService
     {
-        this.client = client;
+        Task<Error> AuthenticateAsync(Account account, CancellationToken ct);
     }
 
-    public async Task<Error> AuthenticateAsync(Account account, CancellationToken ct)
+    [Serializable]
+    public class AuthenticateArgs
     {
-        var (res, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken }, ct);
-        if (error != null)
+        public string AccountId;
+        public string AccessToken;
+    }
+
+    [Serializable]
+    public class AuthenticateRes
+    {
+        public string SessionId;
+    }
+
+    public class AuthenticationService : IAuthenticationService
+    {
+        readonly IClient client;
+
+        public AuthenticationService(IClient client)
         {
-            return error;
+            this.client = client;
         }
 
-        return null;
+        public async Task<Error> AuthenticateAsync(Account account, CancellationToken ct)
+        {
+            var (res, error) = await client.SendMessage<AuthenticateArgs, AuthenticateRes>("AuthenticationHandler/Authenticate", new AuthenticateArgs { AccountId = account.Id, AccessToken = account.AccessToken }, ct);
+            if (error != null)
+            {
+                return error;
+            }
+
+            return null;
+        }
     }
 }

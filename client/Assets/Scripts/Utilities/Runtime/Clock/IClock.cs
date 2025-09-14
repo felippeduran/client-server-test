@@ -1,6 +1,9 @@
 using System;
 
-public interface IClock
+namespace Utilities.Runtime.Clock
 {
-    public DateTime Now();
+    public interface IClock
+    {
+        DateTime Now();
+    }
 }

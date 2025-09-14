@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
 using Presentation.Stats.Views;
 using UseCases.Runtime;
+using Core.Runtime;
 
 namespace Presentation.Stats.Screens
 {
