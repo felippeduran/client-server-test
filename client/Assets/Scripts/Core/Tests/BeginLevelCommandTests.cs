@@ -92,7 +92,7 @@ public class BeginLevelCommandTests
     {
         return new Configs
         {
-            Energy = new EnergyConfig { MaxEnergy = 10, RechargeInterval = TimeSpan.FromSeconds(10) },
+            Energy = new EnergyConfig { MaxEnergy = 10, RechargeIntervalSeconds = 10 },
             Levels = new[]
             {
                 new LevelConfig { },

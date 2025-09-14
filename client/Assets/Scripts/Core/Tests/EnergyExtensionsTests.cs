@@ -13,7 +13,7 @@ public class EnergyExtensionsTests
             Energy = new EnergyConfig
             {
                 MaxEnergy = 100,
-                RechargeInterval = TimeSpan.FromSeconds(10),
+                RechargeIntervalSeconds = 10,
             }
         };
 
@@ -32,7 +32,7 @@ public class EnergyExtensionsTests
             Energy = new EnergyConfig
             {
                 MaxEnergy = 100,
-                RechargeInterval = TimeSpan.FromSeconds(10),
+                RechargeIntervalSeconds = 10,
             }
         };
 

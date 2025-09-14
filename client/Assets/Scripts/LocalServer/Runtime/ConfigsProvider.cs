@@ -6,7 +6,7 @@ public static class ConfigsProvider
     {
         return new Configs
         {
-            Energy = new EnergyConfig { MaxEnergy = 50, RechargeInterval = TimeSpan.FromSeconds(10) },
+            Energy = new EnergyConfig { MaxEnergy = 50, RechargeIntervalSeconds = 10 },
             Levels = new LevelConfig[] {
                 new LevelConfig { },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 1, EnergyReward = 2 },
