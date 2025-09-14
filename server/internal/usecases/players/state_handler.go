@@ -3,7 +3,6 @@ package players
 import (
 	"fmt"
 	"technical-test-backend/internal/core"
-	"technical-test-backend/internal/session"
 	"technical-test-backend/internal/usecases"
 	"time"
 )
@@ -21,14 +20,12 @@ type PlayerState struct {
 }
 
 type StateHandler struct {
-	sessionPool session.Pool
-	dal         StateDAL
+	dal StateDAL
 }
 
-func NewStateHandler(sessionPool session.Pool, dal StateDAL) *StateHandler {
+func NewStateHandler(dal StateDAL) *StateHandler {
 	return &StateHandler{
-		sessionPool: sessionPool,
-		dal:         dal,
+		dal: dal,
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/errors"
-	"technical-test-backend/internal/session"
 	"technical-test-backend/internal/usecases/configs"
 	"technical-test-backend/internal/usecases/players"
 	"time"
@@ -36,15 +35,13 @@ type CommandArgs struct {
 
 type Handler struct {
 	config          Config
-	sessionPool     session.Pool
 	dal             players.StateDAL
 	configsProvider *configs.Provider
 }
 
-func NewHandler(config Config, sessionPool session.Pool, dal players.StateDAL, configsProvider *configs.Provider) *Handler {
+func NewHandler(config Config, dal players.StateDAL, configsProvider *configs.Provider) *Handler {
 	return &Handler{
 		config:          config,
-		sessionPool:     sessionPool,
 		dal:             dal,
 		configsProvider: configsProvider,
 	}

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"technical-test-backend/internal/core"
 	httputils "technical-test-backend/internal/http"
-	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/sessions"
 	"technical-test-backend/internal/usecases"
 	"technical-test-backend/internal/usecases/players"
 )
@@ -12,11 +12,11 @@ import (
 // Handler handles HTTP requests for players
 type Handler struct {
 	stateHandler *players.StateHandler
-	sessionPool  session.Pool
+	sessionPool  sessions.Pool
 }
 
 // NewHandler creates a new players HTTP handler
-func NewHandler(stateHandler *players.StateHandler, sessionPool session.Pool) *Handler {
+func NewHandler(stateHandler *players.StateHandler, sessionPool sessions.Pool) *Handler {
 	return &Handler{
 		stateHandler: stateHandler,
 		sessionPool:  sessionPool,

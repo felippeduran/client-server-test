@@ -56,12 +56,7 @@ func (tc *TestClient) Authenticate(accountID, accessToken string) (string, error
 		return "", parseErrorResponse(resp)
 	}
 
-	var authResp usecasesauthentication.AuthenticateRes
-	if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
-		return "", err
-	}
-
-	return authResp.SessionID, nil
+	return resp.Header.Get("X-Session-ID"), nil
 }
 
 func (tc *TestClient) GetPlayerState(sessionID string) (usecasesplayers.GetPlayerStateRes, error) {

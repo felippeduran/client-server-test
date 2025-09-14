@@ -7,21 +7,21 @@ import (
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/core/commands"
 	httputils "technical-test-backend/internal/http"
-	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/sessions"
 	usecasescommands "technical-test-backend/internal/usecases/commands"
 )
 
 // Handler handles HTTP requests for commands
 type Handler struct {
 	commandHandler *usecasescommands.Handler
-	sessionPool    session.Pool
+	sessionsData   sessions.Data
 }
 
 // NewHandler creates a new commands HTTP handler
-func NewHandler(commandHandler *usecasescommands.Handler, sessionPool session.Pool) *Handler {
+func NewHandler(commandHandler *usecasescommands.Handler, sessionsData sessions.Data) *Handler {
 	return &Handler{
 		commandHandler: commandHandler,
-		sessionPool:    sessionPool,
+		sessionsData:   sessionsData,
 	}
 }
 
@@ -47,7 +47,7 @@ func (h *Handler) HandleCommand(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var sessionState core.SessionState
-	if err := h.sessionPool.GetSessionData(accountID, &sessionState); err != nil {
+	if err := h.sessionsData.GetSessionData(accountID, &sessionState); err != nil {
 		httputils.WriteError(w, http.StatusInternalServerError, "missing session data")
 		return
 	}
@@ -68,7 +68,7 @@ func (h *Handler) HandleCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.sessionPool.SetSessionData(accountID, sessionState); err != nil {
+	if err := h.sessionsData.SetSessionData(accountID, sessionState); err != nil {
 		httputils.WriteError(w, http.StatusInternalServerError, "failed to update session data")
 		return
 	}

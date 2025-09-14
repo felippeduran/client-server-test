@@ -3,14 +3,14 @@ package http
 import (
 	"log"
 	"net/http"
-	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/sessions"
 )
 
 type AuthMiddleware struct {
-	sessionPool session.Pool
+	sessionPool sessions.Pool
 }
 
-func NewAuthMiddleware(sessionPool session.Pool) *AuthMiddleware {
+func NewAuthMiddleware(sessionPool sessions.Pool) *AuthMiddleware {
 	return &AuthMiddleware{
 		sessionPool: sessionPool,
 	}
@@ -24,6 +24,11 @@ func (m *AuthMiddleware) Middleware(next http.HandlerFunc) http.HandlerFunc {
 			WriteError(w, http.StatusUnauthorized, "invalid session id header")
 			return
 		}
+
+		// if _, err := uuid.Parse(sessionID); err != nil {
+		// 	WriteError(w, http.StatusUnauthorized, "invalid session id header")
+		// 	return
+		// }
 
 		// Verify session exists in session pool
 		accountID, authenticated := m.sessionPool.GetAccountID(sessionID)

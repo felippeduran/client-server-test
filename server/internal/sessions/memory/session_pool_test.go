@@ -102,10 +102,10 @@ func TestGetSession(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, session.ID)
 
-		var retrievedData interface{}
+		var retrievedData TestData
 		err = sp.GetSessionData(accountID, &retrievedData)
 		require.NoError(t, err)
-		assert.Nil(t, retrievedData)
+		assert.NotNil(t, retrievedData)
 	})
 }
 

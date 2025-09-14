@@ -2,7 +2,7 @@ package main
 
 import (
 	"technical-test-backend/internal/app"
-	"technical-test-backend/internal/session/memory"
+	"technical-test-backend/internal/sessions/memory"
 	"technical-test-backend/internal/usecases/commands"
 	"technical-test-backend/internal/usecases/configs"
 	"time"

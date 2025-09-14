@@ -12,7 +12,7 @@ GOTEST=$(GOCMD) test
 .PHONY: run
 run:
 	@echo "Starting server..."
-	$(GOCMD) run $(MAIN_PATH)
+	cd $(MAIN_PATH) && $(GOCMD) run .
 
 # Run tests
 .PHONY: test

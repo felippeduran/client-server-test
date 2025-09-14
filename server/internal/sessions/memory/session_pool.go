@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 	"technical-test-backend/internal/errors"
-	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/sessions"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +23,7 @@ type SessionPoolConfig struct {
 
 // SessionPool manages active user sessions
 type SessionPool struct {
-	sessions              map[string]session.Session
+	sessions              map[string]sessions.Session
 	sessionsData          map[string]json.RawMessage
 	accountIDsBySessionID map[string]string
 	sessionIDsByAccountID map[string]string
@@ -34,7 +34,7 @@ type SessionPool struct {
 // NewSessionPool creates a new session pool
 func NewSessionPool(config SessionPoolConfig) *SessionPool {
 	sp := &SessionPool{
-		sessions:              make(map[string]session.Session),
+		sessions:              make(map[string]sessions.Session),
 		accountIDsBySessionID: make(map[string]string),
 		sessionIDsByAccountID: make(map[string]string),
 		sessionsData:          make(map[string]json.RawMessage),
@@ -45,8 +45,8 @@ func NewSessionPool(config SessionPoolConfig) *SessionPool {
 }
 
 // CreateSession creates a new session
-func (sp *SessionPool) CreateSession(accountID string, data interface{}) (session.Session, error) {
-	sess := session.Session{
+func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessions.Session, error) {
+	sess := sessions.Session{
 		ID:           uuid.New().String(),
 		AccountID:    accountID,
 		LastActivity: time.Now(),
@@ -62,7 +62,7 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 
 	rawData, err := json.Marshal(data)
 	if err != nil {
-		return session.Session{}, errors.Wrap(err, ErrFailedToMarshalData)
+		return sessions.Session{}, errors.Wrap(err, ErrFailedToMarshalData)
 	}
 
 	sp.sessionsData[sess.ID] = rawData
@@ -71,17 +71,17 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 }
 
 // GetSession retrieves a session by ID
-func (sp *SessionPool) GetSession(sessionID string) (session.Session, bool) {
+func (sp *SessionPool) GetSession(sessionID string) (sessions.Session, bool) {
 	sp.mutex.RLock()
 	defer sp.mutex.RUnlock()
 
 	sess, exists := sp.sessions[sessionID]
 	if !exists {
-		return session.Session{}, false
+		return sessions.Session{}, false
 	}
 
 	if time.Now().After(sess.LastActivity.Add(sp.config.TTL)) {
-		return session.Session{}, false
+		return sessions.Session{}, false
 	}
 
 	return sess, true

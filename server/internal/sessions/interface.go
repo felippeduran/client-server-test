@@ -1,4 +1,4 @@
-package session
+package sessions
 
 import "time"
 
@@ -17,4 +17,9 @@ type Pool interface {
 	UpdateActivity(sessionID string) error
 	RemoveSession(sessionID string)
 	GetAccountID(sessionID string) (string, bool)
+}
+
+type Data interface {
+	GetSessionData(sessionID string, data interface{}) error
+	SetSessionData(sessionID string, data interface{}) error
 }
