@@ -33,7 +33,7 @@ func (c *EndLevel) Execute(state *core.PlayerState, configs core.Configs) error 
 
 	if c.Success {
 		if currentLevelID == state.Persistent.LevelProgression.CurrentLevel {
-			state.Persistent.LevelProgression.CurrentLevel = currentLevelID + 1
+			state.Persistent.LevelProgression.CurrentLevel = min(currentLevelID+1, len(configs.Levels)-1)
 		}
 		state.Persistent.Energy.CurrentAmount += levelConfig.EnergyReward
 	}
@@ -43,10 +43,10 @@ func (c *EndLevel) Execute(state *core.PlayerState, configs core.Configs) error 
 	return nil
 }
 
-func findOrCreateLevelStats(progression *core.LevelProgression, levelID int) *core.LevelStats {
+func findOrCreateLevelStats(progression *core.LevelProgression, levelID int) core.LevelStats {
 	for i := range progression.Statistics {
 		if progression.Statistics[i].LevelID == levelID {
-			return &progression.Statistics[i]
+			return progression.Statistics[i]
 		}
 	}
 
@@ -57,13 +57,13 @@ func findOrCreateLevelStats(progression *core.LevelProgression, levelID int) *co
 		Losses:    0,
 	}
 	progression.Statistics = append(progression.Statistics, stats)
-	return &progression.Statistics[len(progression.Statistics)-1]
+	return progression.Statistics[len(progression.Statistics)-1]
 }
 
-func updateLevelStats(progression *core.LevelProgression, stats *core.LevelStats) {
+func updateLevelStats(progression *core.LevelProgression, stats core.LevelStats) {
 	for i := range progression.Statistics {
 		if progression.Statistics[i].LevelID == stats.LevelID {
-			progression.Statistics[i] = *stats
+			progression.Statistics[i] = stats
 			return
 		}
 	}

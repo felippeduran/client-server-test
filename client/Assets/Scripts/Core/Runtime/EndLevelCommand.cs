@@ -42,7 +42,7 @@ namespace Core.Runtime
             {
                 if (currentLevelId == state.Persistent.LevelProgression.CurrentLevel)
                 {
-                    state.Persistent.LevelProgression.CurrentLevel = currentLevelId + 1;
+                    state.Persistent.LevelProgression.CurrentLevel = Math.Min(currentLevelId + 1, configs.Levels.Length-1);
                 }
                 state.Persistent.Energy.CurrentAmount += levelConfig.EnergyReward;
             }

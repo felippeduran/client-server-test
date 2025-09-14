@@ -33,6 +33,7 @@ namespace Core.Tests
             var command = new BeginLevelCommand
             {
                 LevelId = 1,
+                Now = DateTime.UtcNow,
             };
 
             command.Execute(playerState, configs);
@@ -62,6 +63,7 @@ namespace Core.Tests
             var command = new BeginLevelCommand
             {
                 LevelId = 1,
+                Now = DateTime.UtcNow,
             };
 
             var exception = Assert.Throws<MetagameException>(() => command.Execute(playerState, configs));
@@ -85,6 +87,7 @@ namespace Core.Tests
             var command = new BeginLevelCommand
             {
                 LevelId = 1,
+                Now = DateTime.UtcNow,
             };
 
             var exception = Assert.Throws<MetagameException>(() => command.Execute(playerState, configs));

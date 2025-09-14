@@ -61,6 +61,11 @@ namespace Application.Runtime
                 var (synchronized, error) = await connectionHandler.HandleAsync(account, SetProgress, cts.Token);
                 if (error != null)
                 {
+                    if (cts.IsCancellationRequested)
+                    {
+                        continue;
+                    }
+
                     client.Disconnect();
                     await screensLibrary.errorScreen.ShowAsync(error.Message, "Try again", cts.Token);
                     continue;
@@ -96,7 +101,7 @@ namespace Application.Runtime
                 if (completedTask.IsFaulted && !cts.IsCancellationRequested)
                 {
                     client.Disconnect();
-                    Logger.LogError(completedTask.Exception.Message);
+                    Logger.LogException(completedTask.Exception);
                     screensLibrary.Loading.Show();
                     await screensLibrary.errorScreen.ShowAsync(completedTask.Exception.Message, "Try again", cts.Token);
                 }

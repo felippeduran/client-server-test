@@ -134,7 +134,7 @@ namespace Networking.Runtime.Http
                         error = await HeartbeatAsync(ct);
                         if (error != null)
                         {
-                            Logger.LogError("Failed to send heartbeat: " + error.Message);
+                            Logger.LogWarning("Failed to send heartbeat: " + error.Message);
                             Disconnect();
                             break;
                         }

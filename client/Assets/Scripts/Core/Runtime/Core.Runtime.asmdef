@@ -1,10 +1,7 @@
 {
     "name": "Core.Runtime",
     "rootNamespace": "Core.Runtime",
-    "references": [
-        "Networking.Runtime",
-        "Utilities.Runtime"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -52,7 +52,7 @@ namespace Application.Runtime
             var (synchronizedState, syncError) = await synchronizationService.SynchronizeAsync(SetProgress, ct);
             if (syncError != null)
             {
-                Logger.LogError(syncError.Message);
+                Logger.LogWarning(syncError.Message);
                 return (default, syncError);
             }
 

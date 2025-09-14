@@ -318,3 +318,30 @@ func TestEndLevel_WithMultipleLevelStats_ShouldUpdateCorrectLevel(t *testing.T) 
 	assert.Equal(t, 3, playerState.Persistent.LevelProgression.Statistics[0].Wins)
 	assert.Nil(t, playerState.Session.CurrentLevelID)
 }
+
+func TestEndLevel_WithLevelInProgressAndSuccess_ShouldNotExceedMaxLevel(t *testing.T) {
+	playerState := &core.PlayerState{
+		Persistent: &core.PersistentState{
+			LevelProgression: core.LevelProgression{
+				CurrentLevel: 1,
+				Statistics:   []core.LevelStats{},
+			},
+		},
+		Session: &core.SessionState{
+			CurrentLevelID: intPtr(1),
+		},
+	}
+
+	configs := getTestConfigs()
+
+	command := &EndLevel{
+		Success: true,
+		Score:   8,
+	}
+
+	err := command.Execute(playerState, configs)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, playerState.Persistent.LevelProgression.CurrentLevel)
+	assert.Nil(t, playerState.Session.CurrentLevelID)
+}
