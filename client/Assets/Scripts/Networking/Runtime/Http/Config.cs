@@ -7,7 +7,7 @@ namespace Networking.Runtime.Http
     {
         public string BaseUrl;
         public TimeSpan Timeout;
-        public bool UseConnectivity;
-        public ConnectivityHttpMessageHandler.ConnectivityConfig Connectivity;
+        public bool UseThrottling;
+        public ThrottlingHttpMessageHandler.ThrottlingConfig Throttling;
     }
 }

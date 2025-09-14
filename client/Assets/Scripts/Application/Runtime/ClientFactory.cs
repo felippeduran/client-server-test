@@ -31,12 +31,12 @@ namespace Application.Runtime
                     new InitializationHandler(accountStorage),
                 });
             IClient client = new FakeClient(server);
-            if (config.UseConnectivity)
+            if (config.UseThrottling)
             {
-                client = new ConnectivityClientDecorator(new ConnectivityClientDecorator.Config
+                client = new ThrottlingClientDecorator(new ThrottlingClientDecorator.Config
                 {
-                    FailureRate = config.Connectivity.FailureRate,
-                    RTTSeconds = config.Connectivity.RTTSeconds
+                    FailureRate = config.Throttling.FailureRate,
+                    RTTSeconds = config.Throttling.RTTSeconds
                 }, client);
             }
             return client;
@@ -48,11 +48,11 @@ namespace Application.Runtime
             {
                 BaseUrl = config.BaseUrl,
                 Timeout = TimeSpan.FromSeconds(5),
-                UseConnectivity = config.UseConnectivity,
-                Connectivity = new ConnectivityHttpMessageHandler.ConnectivityConfig
+                UseThrottling = config.UseThrottling,
+                Throttling = new ThrottlingHttpMessageHandler.ThrottlingConfig
                 {
-                    FailureRate = config.Connectivity.FailureRate,
-                    RTTSeconds = config.Connectivity.RTTSeconds
+                    FailureRate = config.Throttling.FailureRate,
+                    RTTSeconds = config.Throttling.RTTSeconds
                 }
             });
         }

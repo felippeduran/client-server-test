@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Networking.Runtime.Fake
 {
-    public class ConnectivityClientDecorator : IClient
+    public class ThrottlingClientDecorator : IClient
     {
         [Serializable]
         public struct Config
@@ -19,7 +19,7 @@ namespace Networking.Runtime.Fake
 
         public bool IsConnected => client.IsConnected;
 
-        public ConnectivityClientDecorator(Config config, IClient client)
+        public ThrottlingClientDecorator(Config config, IClient client)
         {
             this.config = config;
             this.client = client;

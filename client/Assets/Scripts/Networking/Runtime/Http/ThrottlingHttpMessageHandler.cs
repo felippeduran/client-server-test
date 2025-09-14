@@ -5,19 +5,19 @@ using System.Net.Http;
 
 namespace Networking.Runtime.Http
 {
-    public class ConnectivityHttpMessageHandler : System.Net.Http.HttpClientHandler
+    public class ThrottlingHttpMessageHandler : System.Net.Http.HttpClientHandler
     {
         [Serializable]
-        public struct ConnectivityConfig
+        public struct ThrottlingConfig
         {
             public double FailureRate;
             public double RTTSeconds;
         }
 
         readonly Random random = new();
-        readonly ConnectivityConfig config;
+        readonly ThrottlingConfig config;
 
-        public ConnectivityHttpMessageHandler(ConnectivityConfig config)
+        public ThrottlingHttpMessageHandler(ThrottlingConfig config)
         {
             this.config = config;
         }

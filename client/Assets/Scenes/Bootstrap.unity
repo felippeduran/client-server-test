@@ -683,10 +683,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   screensLibrary: {fileID: 1944796723}
-  connectivityConfig:
+  config:
     BaseUrl: http://localhost:8080
-    UseConnectivity: 1
-    Connectivity:
+    UseThrottling: 1
+    Throttling:
       FailureRate: 0
       RTTSeconds: 1.3
     UseFakeServer: 0

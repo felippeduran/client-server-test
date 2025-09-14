@@ -15,13 +15,13 @@ namespace Application.Runtime
     public struct AppConfig
     {
         public string BaseUrl;
-        public bool UseConnectivity;
-        public ConnectivityConfig Connectivity;
+        public bool UseThrottling;
+        public ThrottlingConfig Throttling;
         public bool UseFakeServer;
     }
 
     [Serializable]
-    public struct ConnectivityConfig
+    public struct ThrottlingConfig
     {
         public double FailureRate;
         public double RTTSeconds;
@@ -30,14 +30,14 @@ namespace Application.Runtime
     public class Bootstrap : MonoBehaviour
     {
         [SerializeField] ScreensLibrary screensLibrary;
-        [SerializeField] AppConfig connectivityConfig;
+        [SerializeField] AppConfig config;
 
         private async void Start()
         {
             Logger.Instance = new UnityLogger();
             Logger.Log("Starting Bootstrap");
 
-            IClient client = new ClientFactory().CreateClient(connectivityConfig);
+            IClient client = new ClientFactory().CreateClient(config);
 
             var commandService = new CommandService(client);
             var authenticationService = new AuthenticationService(client);

@@ -190,9 +190,9 @@ namespace Networking.Runtime.Http
         static HttpMessageHandler CreateHandler(Config config)
         {
             HttpMessageHandler handler = null;
-            if (config.UseConnectivity)
+            if (config.UseThrottling)
             {
-                handler = new ConnectivityHttpMessageHandler(config.Connectivity) { UseCookies = false };
+                handler = new ThrottlingHttpMessageHandler(config.Throttling) { UseCookies = false };
             }
             else
             {
