@@ -11,7 +11,7 @@ namespace Application.Runtime
     {
         public string BaseUrl;
         public bool UseConnectivity;
-        public ConnectivityConfig ConnectivityConfig;
+        public ConnectivityConfig Connectivity;
         public bool UseFakeServer;
     }
 
@@ -32,42 +32,7 @@ namespace Application.Runtime
             Logger.Instance = new UnityLogger();
             Logger.Log("Starting Bootstrap");
 
-            IClient client;
-            if (connectivityConfig.UseFakeServer)
-            {
-                var accountStorage = new InMemoryAccounts();
-#if UNITY_EDITOR
-                var accountDebugObject = new GameObject("InMemoryAccountsDebug");
-                var accountDebug = accountDebugObject.AddComponent<InMemoryAccountsDebug>();
-                accountDebug.InMemoryAccounts = accountStorage;
-#endif
-                var server = FakeServerFactory.CreateServer<ConnectionState>(new object[] {
-                new AuthenticationHandler(accountStorage),
-                new CommandHandler(new CommandHandler.Config { MaxTimeDifferenceMilliseconds = 1000 }, accountStorage),
-                    new InitializationHandler(accountStorage),
-                });
-                client = new FakeClient(server);
-                if (connectivityConfig.UseConnectivity)
-                {
-                    client = new ConnectivityClientDecorator(new ConnectivityClientDecorator.Config
-                    {
-                        FailureRate = connectivityConfig.ConnectivityConfig.FailureRate,
-                        RTTSeconds = connectivityConfig.ConnectivityConfig.RTTSeconds
-                    }, client);
-                }
-            }
-            else
-            {
-                client = new HttpClient(new Config {
-                    BaseUrl = connectivityConfig.BaseUrl,
-                    Timeout = TimeSpan.FromSeconds(5),
-                    UseConnectivity = connectivityConfig.UseConnectivity,
-                    Connectivity = new ConnectivityHttpMessageHandler.ConnectivityConfig {
-                        FailureRate = connectivityConfig.ConnectivityConfig.FailureRate,
-                        RTTSeconds = connectivityConfig.ConnectivityConfig.RTTSeconds
-                    }
-                });
-            }
+            IClient client = new ClientFactory().CreateClient(connectivityConfig);
 
             var commandService = new CommandService(client);
             var authenticationService = new AuthenticationService(client);

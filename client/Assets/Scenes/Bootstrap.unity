@@ -686,7 +686,7 @@ MonoBehaviour:
   connectivityConfig:
     BaseUrl: http://localhost:8080
     UseConnectivity: 1
-    ConnectivityConfig:
+    Connectivity:
       FailureRate: 0
       RTTSeconds: 1.3
     UseFakeServer: 0
