@@ -688,7 +688,7 @@ MonoBehaviour:
     UseConnectivity: 1
     ConnectivityConfig:
       FailureRate: 0
-      RTTSeconds: 0.3
+      RTTSeconds: 1.3
     UseFakeServer: 0
 --- !u!114 &2096625944 stripped
 MonoBehaviour:
