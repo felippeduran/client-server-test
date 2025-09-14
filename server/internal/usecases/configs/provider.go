@@ -9,7 +9,7 @@ import (
 
 // ProviderConfig defines the configuration for the config provider
 type ProviderConfig struct {
-	ConfigFilePath string `json:"configFilePath"`
+	FilePath string
 }
 
 // Provider provides game configuration
@@ -20,7 +20,7 @@ type Provider struct {
 // NewProvider creates a new configs provider with custom config
 func NewProvider(config ProviderConfig) *Provider {
 	return &Provider{
-		configPath: config.ConfigFilePath,
+		configPath: config.FilePath,
 	}
 }
 

@@ -12,8 +12,8 @@ type Player struct {
 
 // PlayerState contains both persistent and session state
 type PlayerState struct {
-	Persistent PersistentState `json:"persistent"`
-	Session    SessionState    `json:"session"`
+	Persistent *PersistentState `json:"persistent"`
+	Session    *SessionState    `json:"session"`
 }
 
 // PersistentState contains data that survives across sessions

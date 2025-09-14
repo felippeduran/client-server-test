@@ -16,20 +16,22 @@ type SessionPoolConfig struct {
 
 // SessionPool manages active user sessions
 type SessionPool struct {
-	sessions            map[string]session.Session
-	sessionsData        map[string]json.RawMessage
-	sessionIDsByAccount map[string]string
-	mutex               sync.RWMutex
-	config              SessionPoolConfig
+	sessions              map[string]session.Session
+	sessionsData          map[string]json.RawMessage
+	accountIDsBySessionID map[string]string
+	sessionIDsByAccountID map[string]string
+	mutex                 sync.RWMutex
+	config                SessionPoolConfig
 }
 
 // NewSessionPool creates a new session pool
 func NewSessionPool(config SessionPoolConfig) *SessionPool {
 	sp := &SessionPool{
-		sessions:            make(map[string]session.Session),
-		sessionIDsByAccount: make(map[string]string),
-		sessionsData:        make(map[string]json.RawMessage),
-		config:              config,
+		sessions:              make(map[string]session.Session),
+		accountIDsBySessionID: make(map[string]string),
+		sessionIDsByAccountID: make(map[string]string),
+		sessionsData:          make(map[string]json.RawMessage),
+		config:                config,
 	}
 
 	return sp
@@ -48,7 +50,8 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 	defer sp.mutex.Unlock()
 
 	sp.sessions[sess.ID] = sess
-	sp.sessionIDsByAccount[accountID] = sess.ID
+	sp.accountIDsBySessionID[sess.ID] = accountID
+	sp.sessionIDsByAccountID[accountID] = sess.ID
 
 	rawData, err := json.Marshal(data)
 	if err != nil {
@@ -56,6 +59,7 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 	}
 
 	sp.sessionsData[sess.ID] = rawData
+
 	return sess, nil
 }
 
@@ -76,9 +80,14 @@ func (sp *SessionPool) GetSession(sessionID string) (session.Session, bool) {
 	return sess, true
 }
 
-func (sp *SessionPool) GetSessionData(sessionID string, data interface{}) error {
+func (sp *SessionPool) GetSessionData(accountID string, data interface{}) error {
 	sp.mutex.RLock()
 	defer sp.mutex.RUnlock()
+
+	sessionID, exists := sp.sessionIDsByAccountID[accountID]
+	if !exists {
+		return fmt.Errorf("session not found")
+	}
 
 	savedData, exists := sp.sessionsData[sessionID]
 	if !exists {
@@ -93,13 +102,18 @@ func (sp *SessionPool) GetSessionData(sessionID string, data interface{}) error 
 	return nil
 }
 
-func (sp *SessionPool) SetSessionData(sessionID string, data interface{}) error {
+func (sp *SessionPool) SetSessionData(accountID string, data interface{}) error {
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
 
 	rawData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+
+	sessionID, exists := sp.sessionIDsByAccountID[accountID]
+	if !exists {
+		return fmt.Errorf("session not found")
 	}
 
 	sp.sessionsData[sessionID] = rawData
@@ -137,7 +151,8 @@ func (sp *SessionPool) RemoveSession(sessionID string) {
 	// Remove from sessions map
 	delete(sp.sessions, sessionID)
 	delete(sp.sessionsData, sessionID)
-	delete(sp.sessionIDsByAccount, session.AccountID)
+	delete(sp.sessionIDsByAccountID, session.AccountID)
+	delete(sp.accountIDsBySessionID, sessionID)
 }
 
 // GetAccountID returns the account ID for a session
@@ -177,7 +192,8 @@ func (sp *SessionPool) CleanupExpiredSessions() {
 		session := sp.sessions[sessionID]
 		delete(sp.sessions, sessionID)
 		delete(sp.sessionsData, sessionID)
-		delete(sp.sessionIDsByAccount, session.AccountID)
+		delete(sp.sessionIDsByAccountID, session.AccountID)
+		delete(sp.accountIDsBySessionID, sessionID)
 	}
 }
 

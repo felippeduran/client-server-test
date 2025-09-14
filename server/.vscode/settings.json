@@ -1,0 +1,6 @@
+{
+    "go.buildTags": "integration,unit",
+    "go.testTags": "integration,unit",
+    "go.testFlags": ["-count=1"],
+    "go.testEnvVars": {}
+}

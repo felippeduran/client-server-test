@@ -1,12 +1,23 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
-	"technical-test-backend/internal/configs"
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/usecases/configs"
 	"technical-test-backend/internal/usecases/players"
 )
+
+type SessionData struct {
+	AccountID    string
+	SessionState *core.SessionState
+}
+
+type CommandArgs struct {
+	Command string          `json:"command"`
+	Data    json.RawMessage `json:"data"`
+}
 
 type Handler struct {
 	sessionPool session.Pool
@@ -22,29 +33,17 @@ func NewHandler(sessionPool session.Pool, dal players.StateDAL, configs *configs
 	}
 }
 
-func (h *Handler) Handle(sessionID string, command core.Command) error {
-	// Check authentication
-	accountID, authenticated := h.sessionPool.GetAccountID(sessionID)
-	if !authenticated {
-		return fmt.Errorf("connection not authenticated")
-	}
-
+func (h *Handler) Handle(sessionData SessionData, command core.Command) error {
 	// Get persistent state
-	persistentState, err := h.dal.GetPersistentState(accountID)
+	persistentState, err := h.dal.GetPersistentState(sessionData.AccountID)
 	if err != nil {
 		return fmt.Errorf("failed to get persistent state: %v", err)
 	}
 
-	// Get session state
-	var sessionState core.SessionState
-	if err := h.sessionPool.GetSessionData(sessionID, &sessionState); err != nil {
-		return fmt.Errorf("session not found")
-	}
-
 	// Create player state
 	playerState := core.PlayerState{
-		Persistent: persistentState,
-		Session:    sessionState,
+		Persistent: &persistentState,
+		Session:    sessionData.SessionState,
 	}
 
 	// Get configs
@@ -60,19 +59,13 @@ func (h *Handler) Handle(sessionID string, command core.Command) error {
 	}
 
 	// Update persistent state
-	err = h.dal.SetPersistentState(accountID, playerState.Persistent)
+	err = h.dal.SetPersistentState(sessionData.AccountID, *playerState.Persistent)
 	if err != nil {
 		return fmt.Errorf("failed to save persistent state: %v", err)
 	}
 
 	// Update session state
-	sessionState.CurrentLevelID = playerState.Session.CurrentLevelID
-	if err := h.sessionPool.SetSessionData(sessionID, sessionState); err != nil {
-		return fmt.Errorf("failed to save session state: %v", err)
-	}
-
-	// Update activity
-	h.sessionPool.UpdateActivity(sessionID)
+	sessionData.SessionState.CurrentLevelID = playerState.Session.CurrentLevelID
 
 	return nil
 }

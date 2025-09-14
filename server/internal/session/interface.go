@@ -12,8 +12,8 @@ type Session struct {
 type Pool interface {
 	CreateSession(accountID string, data interface{}) (Session, error)
 	GetSession(sessionID string) (Session, bool)
-	GetSessionData(sessionID string, data interface{}) error
-	SetSessionData(sessionID string, data interface{}) error
+	GetSessionData(accountID string, data interface{}) error
+	SetSessionData(accountID string, data interface{}) error
 	UpdateActivity(sessionID string) error
 	RemoveSession(sessionID string)
 	GetAccountID(sessionID string) (string, bool)

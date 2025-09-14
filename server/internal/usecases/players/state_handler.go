@@ -4,14 +4,20 @@ import (
 	"fmt"
 	"technical-test-backend/internal/core"
 	"technical-test-backend/internal/session"
+	"technical-test-backend/internal/usecases"
 	"time"
 )
 
 type GetPlayerStateArgs struct{}
 
 type GetPlayerStateRes struct {
-	PlayerState core.PlayerState `json:"playerState"`
-	ServerTime  time.Time        `json:"serverTime"`
+	PlayerState PlayerState `json:"playerState"`
+	ServerTime  time.Time   `json:"serverTime"`
+}
+
+type PlayerState struct {
+	Persistent core.PersistentState `json:"persistent"`
+	Session    core.SessionState    `json:"session"`
 }
 
 type StateHandler struct {
@@ -26,31 +32,17 @@ func NewStateHandler(sessionPool session.Pool, dal StateDAL) *StateHandler {
 	}
 }
 
-func (h *StateHandler) GetPlayerState(sessionID string, args *GetPlayerStateArgs) (*GetPlayerStateRes, error) {
-	accountID, authenticated := h.sessionPool.GetAccountID(sessionID)
-	if !authenticated {
-		return nil, fmt.Errorf("connection not authenticated")
-	}
-
-	persistentState, err := h.dal.GetPersistentState(accountID)
+func (h *StateHandler) GetPlayerState(sessionData usecases.SessionData, args *GetPlayerStateArgs) (*GetPlayerStateRes, error) {
+	persistentState, err := h.dal.GetPersistentState(sessionData.AccountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get persistent state: %v", err)
 	}
 
-	var sessionState core.SessionState
-	if err := h.sessionPool.GetSessionData(sessionID, &sessionState); err != nil {
-		return nil, fmt.Errorf("session not found")
-	}
-
-	playerState := core.PlayerState{
-		Persistent: persistentState,
-		Session:    sessionState,
-	}
-
-	h.sessionPool.UpdateActivity(sessionID)
-
 	return &GetPlayerStateRes{
-		PlayerState: playerState,
-		ServerTime:  time.Now(),
+		PlayerState: PlayerState{
+			Persistent: persistentState,
+			Session:    *sessionData.SessionState,
+		},
+		ServerTime: time.Now(),
 	}, nil
 }
