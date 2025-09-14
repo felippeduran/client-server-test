@@ -189,3 +189,4 @@ Here's a small list of potential improvements for the project:
 * Add compression support to player state and configs endpoints.
 * Consider using other serialization formats, like Protobuf.
 * Add support for HTTPS.
+* Extract initial state to config file.
