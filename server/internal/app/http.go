@@ -8,6 +8,7 @@ import (
 	httputils "technical-test-backend/internal/http"
 	"technical-test-backend/internal/session/memory"
 	authenticationhttp "technical-test-backend/internal/usecases/authentication/http"
+	"technical-test-backend/internal/usecases/commands"
 	commandshttp "technical-test-backend/internal/usecases/commands/http"
 	"technical-test-backend/internal/usecases/configs"
 	configshttp "technical-test-backend/internal/usecases/configs/http"
@@ -17,9 +18,10 @@ import (
 )
 
 type Config struct {
-	Port        int
-	SessionPool memory.SessionPoolConfig
-	GameConfig  configs.ProviderConfig
+	Port           int
+	SessionPool    memory.SessionPoolConfig
+	ConfigProvider configs.ProviderConfig
+	Commands       commands.Config
 }
 
 type HTTP struct {
@@ -38,13 +40,13 @@ func (a *HTTP) Run() {
 	defer close()
 
 	accountsDal := playersmemory.NewDAL()
-	configsProvider := configs.NewProvider(a.config.GameConfig)
+	configsProvider := configs.NewProvider(a.config.ConfigProvider)
 
 	// Create handlers
 	authHandler := authenticationhttp.CreateHTTPHandler(sessionPool, accountsDal)
 	stateHandler := playershttp.CreateHTTPHandler(sessionPool, accountsDal)
 	configHandler := configshttp.CreateHTTPHandler(configsProvider)
-	commandHandler := commandshttp.CreateHTTPHandler(sessionPool, accountsDal, configsProvider)
+	commandHandler := commandshttp.CreateHTTPHandler(a.config.Commands, sessionPool, accountsDal, configsProvider)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", handleHealth)

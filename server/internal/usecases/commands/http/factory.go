@@ -7,6 +7,6 @@ import (
 	"technical-test-backend/internal/usecases/players"
 )
 
-func CreateHTTPHandler(sessionPool session.Pool, dal players.StateDAL, configs *configs.Provider) *Handler {
-	return NewHandler(commands.NewHandler(sessionPool, dal, configs), sessionPool)
+func CreateHTTPHandler(config commands.Config, sessionPool session.Pool, dal players.StateDAL, configsProvider *configs.Provider) *Handler {
+	return NewHandler(commands.NewHandler(config, sessionPool, dal, configsProvider), sessionPool)
 }

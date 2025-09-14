@@ -4,14 +4,29 @@ import (
 	"encoding/json"
 	"fmt"
 	"technical-test-backend/internal/core"
+	"technical-test-backend/internal/errors"
 	"technical-test-backend/internal/session"
 	"technical-test-backend/internal/usecases/configs"
 	"technical-test-backend/internal/usecases/players"
+	"time"
+)
+
+var (
+	ErrCommandTimestampTooFar  = errors.New("command timestamp is too far")
+	ErrCommandExecutionFailure = errors.New("command execution failed")
 )
 
 type SessionData struct {
 	AccountID    string
 	SessionState *core.SessionState
+}
+
+type Config struct {
+	MaxTimeDifferenceSeconds float64
+}
+
+func (c *Config) MaxTimeDifference() time.Duration {
+	return time.Duration(c.MaxTimeDifferenceSeconds) * time.Second
 }
 
 type CommandArgs struct {
@@ -20,20 +35,30 @@ type CommandArgs struct {
 }
 
 type Handler struct {
-	sessionPool session.Pool
-	dal         players.StateDAL
-	configs     *configs.Provider
+	config          Config
+	sessionPool     session.Pool
+	dal             players.StateDAL
+	configsProvider *configs.Provider
 }
 
-func NewHandler(sessionPool session.Pool, dal players.StateDAL, configs *configs.Provider) *Handler {
+func NewHandler(config Config, sessionPool session.Pool, dal players.StateDAL, configsProvider *configs.Provider) *Handler {
 	return &Handler{
-		sessionPool: sessionPool,
-		dal:         dal,
-		configs:     configs,
+		config:          config,
+		sessionPool:     sessionPool,
+		dal:             dal,
+		configsProvider: configsProvider,
 	}
 }
 
 func (h *Handler) Handle(sessionData SessionData, command core.Command) error {
+	if timedCmd, ok := command.(core.TimedCommand); ok {
+		now := time.Now().UTC()
+		timeDifference := timedCmd.GetTimestamp().Sub(now)
+		if timeDifference > h.config.MaxTimeDifference() {
+			return ErrCommandTimestampTooFar
+		}
+	}
+
 	// Get persistent state
 	persistentState, err := h.dal.GetPersistentState(sessionData.AccountID)
 	if err != nil {
@@ -47,7 +72,7 @@ func (h *Handler) Handle(sessionData SessionData, command core.Command) error {
 	}
 
 	// Get configs
-	configs, err := h.configs.GetConfigs()
+	configs, err := h.configsProvider.GetConfigs()
 	if err != nil {
 		return fmt.Errorf("failed to load configs: %v", err)
 	}
@@ -55,7 +80,7 @@ func (h *Handler) Handle(sessionData SessionData, command core.Command) error {
 	// Execute command
 	err = command.Execute(&playerState, configs)
 	if err != nil {
-		return fmt.Errorf("command execution failed: %v", err)
+		return errors.Wrap(err, ErrCommandExecutionFailure)
 	}
 
 	// Update persistent state

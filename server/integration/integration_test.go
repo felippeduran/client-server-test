@@ -10,6 +10,7 @@ import (
 	"technical-test-backend/internal/app"
 	"technical-test-backend/internal/errors"
 	"technical-test-backend/internal/session/memory"
+	"technical-test-backend/internal/usecases/commands"
 	"technical-test-backend/internal/usecases/configs"
 	"testing"
 	"time"
@@ -179,8 +180,11 @@ func GetDefaultTestConfig() (app.Config, error) {
 		SessionPool: memory.SessionPoolConfig{
 			TTL: 30 * time.Second,
 		},
-		GameConfig: configs.ProviderConfig{
+		ConfigProvider: configs.ProviderConfig{
 			FilePath: "../config/game_config.json",
+		},
+		Commands: commands.Config{
+			MaxTimeDifferenceSeconds: 1,
 		},
 	}, nil
 }

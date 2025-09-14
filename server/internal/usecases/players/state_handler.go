@@ -43,6 +43,6 @@ func (h *StateHandler) GetPlayerState(sessionData usecases.SessionData, args *Ge
 			Persistent: persistentState,
 			Session:    *sessionData.SessionState,
 		},
-		ServerTime: time.Now(),
+		ServerTime: time.Now().UTC(),
 	}, nil
 }

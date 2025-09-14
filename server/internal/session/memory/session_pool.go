@@ -2,12 +2,19 @@ package memory
 
 import (
 	"encoding/json"
-	"fmt"
 	"sync"
+	"technical-test-backend/internal/errors"
 	"technical-test-backend/internal/session"
 	"time"
 
 	"github.com/google/uuid"
+)
+
+var (
+	ErrSessionNotFound       = errors.New("session not found")
+	ErrSessionExpired        = errors.New("session expired")
+	ErrFailedToMarshalData   = errors.New("failed to marshal data")
+	ErrFailedToUnmarshalData = errors.New("failed to unmarshal data")
 )
 
 type SessionPoolConfig struct {
@@ -55,7 +62,7 @@ func (sp *SessionPool) CreateSession(accountID string, data interface{}) (sessio
 
 	rawData, err := json.Marshal(data)
 	if err != nil {
-		return session.Session{}, fmt.Errorf("failed to marshal data: %v", err)
+		return session.Session{}, errors.Wrap(err, ErrFailedToMarshalData)
 	}
 
 	sp.sessionsData[sess.ID] = rawData
@@ -86,17 +93,17 @@ func (sp *SessionPool) GetSessionData(accountID string, data interface{}) error 
 
 	sessionID, exists := sp.sessionIDsByAccountID[accountID]
 	if !exists {
-		return fmt.Errorf("session not found")
+		return ErrSessionNotFound
 	}
 
 	savedData, exists := sp.sessionsData[sessionID]
 	if !exists {
-		return fmt.Errorf("session not found")
+		return ErrSessionNotFound
 	}
 
 	err := json.Unmarshal(savedData, data)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal data: %v", err)
+		return errors.Wrap(err, ErrFailedToUnmarshalData)
 	}
 
 	return nil
@@ -108,12 +115,12 @@ func (sp *SessionPool) SetSessionData(accountID string, data interface{}) error 
 
 	rawData, err := json.Marshal(data)
 	if err != nil {
-		return fmt.Errorf("failed to marshal data: %v", err)
+		return errors.Wrap(err, ErrFailedToMarshalData)
 	}
 
 	sessionID, exists := sp.sessionIDsByAccountID[accountID]
 	if !exists {
-		return fmt.Errorf("session not found")
+		return ErrSessionNotFound
 	}
 
 	sp.sessionsData[sessionID] = rawData
@@ -127,14 +134,15 @@ func (sp *SessionPool) UpdateActivity(sessionID string) error {
 
 	session, exists := sp.sessions[sessionID]
 	if !exists {
-		return fmt.Errorf("session not found")
+		return ErrSessionNotFound
 	}
 
 	if time.Now().After(session.LastActivity.Add(sp.config.TTL)) {
-		return fmt.Errorf("session not found")
+		return ErrSessionExpired
 	}
 
 	session.LastActivity = time.Now()
+	sp.sessions[sessionID] = session
 	return nil
 }
 

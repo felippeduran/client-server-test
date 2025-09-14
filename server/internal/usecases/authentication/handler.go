@@ -71,7 +71,7 @@ func createInitialState() core.PersistentState {
 	return core.PersistentState{
 		Energy: core.Energy{
 			CurrentAmount:  1,
-			LastRechargeAt: time.Now(),
+			LastRechargeAt: time.Now().UTC(),
 		},
 		LevelProgression: core.LevelProgression{
 			CurrentLevel: 1,
