@@ -323,12 +323,12 @@ func TestEndLevel_WithLevelInProgressAndSuccess_ShouldNotExceedMaxLevel(t *testi
 	playerState := &core.PlayerState{
 		Persistent: &core.PersistentState{
 			LevelProgression: core.LevelProgression{
-				CurrentLevel: 1,
+				CurrentLevel: 2,
 				Statistics:   []core.LevelStats{},
 			},
 		},
 		Session: &core.SessionState{
-			CurrentLevelID: intPtr(1),
+			CurrentLevelID: intPtr(2),
 		},
 	}
 
@@ -342,6 +342,6 @@ func TestEndLevel_WithLevelInProgressAndSuccess_ShouldNotExceedMaxLevel(t *testi
 	err := command.Execute(playerState, configs)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 1, playerState.Persistent.LevelProgression.CurrentLevel)
+	assert.Equal(t, 2, playerState.Persistent.LevelProgression.CurrentLevel)
 	assert.Nil(t, playerState.Session.CurrentLevelID)
 }

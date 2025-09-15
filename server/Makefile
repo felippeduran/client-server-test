@@ -8,6 +8,12 @@ TEST_PATH=./...
 GOCMD=go
 GOTEST=$(GOCMD) test
 
+# Install dependencies
+.PHONY: setup
+setup:
+	@echo "Installing dependencies..."
+	go get ./...
+
 # Run the server
 .PHONY: run
 run:

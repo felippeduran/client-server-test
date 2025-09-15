@@ -16,6 +16,12 @@ func getTestConfigs() core.Configs {
 				TargetNumber: 1,
 				EnergyReward: 2,
 			},
+			{
+				EnergyCost:   1,
+				MaxRolls:     10,
+				TargetNumber: 1,
+				EnergyReward: 2,
+			},
 		},
 	}
 }
