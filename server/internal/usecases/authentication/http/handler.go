@@ -6,6 +6,8 @@ import (
 	httputils "technical-test-backend/internal/http"
 	"technical-test-backend/internal/sessions"
 	"technical-test-backend/internal/usecases/authentication"
+
+	"github.com/google/uuid"
 )
 
 var (
@@ -38,20 +40,20 @@ func (h *Handler) HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if _, err := uuid.Parse(args.AccountID); err != nil {
-	// 	httputils.WriteError(w, http.StatusBadRequest, ErrInvalidAccountID.Error())
-	// 	return
-	// }
+	if _, err := uuid.Parse(args.AccountID); err != nil {
+		httputils.WriteError(w, http.StatusBadRequest, ErrInvalidAccountID.Error())
+		return
+	}
 
 	if args.AccessToken == "" {
 		httputils.WriteError(w, http.StatusBadRequest, ErrInvalidAccessToken.Error())
 		return
 	}
 
-	// if _, err := uuid.Parse(args.AccessToken); err != nil {
-	// 	httputils.WriteError(w, http.StatusBadRequest, ErrInvalidAccessToken.Error())
-	// 	return
-	// }
+	if _, err := uuid.Parse(args.AccessToken); err != nil {
+		httputils.WriteError(w, http.StatusBadRequest, ErrInvalidAccessToken.Error())
+		return
+	}
 
 	res, err := h.authHandler.Authenticate(&args)
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,42 +28,45 @@ func TestAuthentication_Success(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	sessionID, err := client.Authenticate("test", "test")
+	sessionID, err := client.Authenticate(uuid.New().String(), uuid.New().String())
 	assert.NoError(t, err)
 
 	assert.NotEmpty(t, sessionID)
 }
 
-func TestAuthentication_InvalidAccountID(t *testing.T) {
+func TestAuthentication(t *testing.T) {
 	config, err := GetDefaultTestConfig()
 	assert.NoError(t, err)
 
 	_, stop := runServer(t, config)
 	defer stop()
 
-	client := NewTestClient(config.Port)
+	table := map[string]struct {
+		accountID     string
+		token         string
+		expectedError *httpError
+	}{
+		"valid credentials":  {uuid.New().String(), uuid.New().String(), nil},
+		"invalid account id": {"invalid-account-id", uuid.New().String(), &httpError{StatusCode: http.StatusBadRequest}},
+		"missing account id": {"", uuid.New().String(), &httpError{StatusCode: http.StatusBadRequest}},
+		"invalid token":      {uuid.New().String(), "invalid-token", &httpError{StatusCode: http.StatusBadRequest}},
+		"missing token":      {uuid.New().String(), "", &httpError{StatusCode: http.StatusBadRequest}},
+	}
 
-	sessionID, err := client.Authenticate("", "token")
-	assert.Error(t, err)
-	assert.Equal(t, err.(*httpError).StatusCode, http.StatusBadRequest)
+	for name, row := range table {
+		t.Run(name, func(t *testing.T) {
+			client := NewTestClient(config.Port)
 
-	assert.Empty(t, sessionID)
-}
+			_, err := client.Authenticate(row.accountID, row.token)
 
-func TestAuthentication_InvalidToken(t *testing.T) {
-	config, err := GetDefaultTestConfig()
-	assert.NoError(t, err)
-
-	_, stop := runServer(t, config)
-	defer stop()
-
-	client := NewTestClient(config.Port)
-
-	sessionID, err := client.Authenticate("account_id", "")
-	assert.Error(t, err)
-	assert.Equal(t, err.(*httpError).StatusCode, http.StatusBadRequest)
-
-	assert.Empty(t, sessionID)
+			if row.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, err.(*httpError).StatusCode, row.expectedError.StatusCode)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestGetPlayerState_Success(t *testing.T) {
@@ -74,7 +78,7 @@ func TestGetPlayerState_Success(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	sessionID, err := client.Authenticate("test", "test")
+	sessionID, err := client.Authenticate(uuid.New().String(), uuid.New().String())
 	assert.NoError(t, err)
 
 	state, err := client.GetPlayerState(sessionID)
@@ -92,7 +96,7 @@ func TestGetPlayerState_Unauthorized(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	state, err := client.GetPlayerState("invalid-session-id")
+	state, err := client.GetPlayerState(uuid.New().String())
 	assert.Empty(t, state)
 	assert.Error(t, err)
 	assert.Equal(t, err.(*httpError).StatusCode, http.StatusUnauthorized)
@@ -107,7 +111,7 @@ func TestBeginLevel_Success(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	sessionID, err := client.Authenticate("test", "test")
+	sessionID, err := client.Authenticate(uuid.New().String(), uuid.New().String())
 	assert.NoError(t, err)
 
 	err = client.BeginLevel(sessionID, 1)
@@ -123,7 +127,7 @@ func TestBeginLevel_Unauthorized(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	err = client.BeginLevel("invalid-session-id", 1)
+	err = client.BeginLevel(uuid.New().String(), 1)
 	assert.Error(t, err)
 	assert.Equal(t, err.(*httpError).StatusCode, http.StatusUnauthorized)
 }
@@ -137,7 +141,7 @@ func TestEndLevel_Success(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	sessionID, err := client.Authenticate("test", "test")
+	sessionID, err := client.Authenticate(uuid.New().String(), uuid.New().String())
 	assert.NoError(t, err)
 
 	err = client.BeginLevel(sessionID, 1)
@@ -156,7 +160,7 @@ func TestEndLevel_Unauthorized(t *testing.T) {
 
 	client := NewTestClient(config.Port)
 
-	err = client.EndLevel("invalid-session-id", true, 100)
+	err = client.EndLevel(uuid.New().String(), true, 100)
 	assert.Error(t, err)
 	assert.Equal(t, err.(*httpError).StatusCode, http.StatusUnauthorized)
 }

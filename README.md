@@ -204,9 +204,9 @@ All endpoints return JSON responses with the following error format:
 
 Here's a small list of potential improvements for the project:
 
-* Validation of account id and access token formats
 * Replay of queue commands in case of connectivity issues.
 * Better, more granular handling of specific errors, i.e., for "no energy" or "level not unlocked".
+* Add structured logging to server code.
 * Implementation of gRPC or custom protocol for duplex communication.
 * Make `LocalServer` from the client project share the same config from the server.
 * Implement server-side command execution in C# to avoid duplicate implementation.

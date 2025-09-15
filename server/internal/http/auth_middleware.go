@@ -1,9 +1,17 @@
 package http
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"technical-test-backend/internal/sessions"
+
+	"github.com/google/uuid"
+)
+
+var (
+	ErrInvalidSessionID        = errors.New("invalid session id header")
+	ErrInvalidOrExpiredSession = errors.New("invalid or expired session")
 )
 
 type AuthMiddleware struct {
@@ -20,18 +28,18 @@ func (m *AuthMiddleware) Middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionID := r.Header.Get("X-Session-ID")
 		if sessionID == "" {
-			WriteError(w, http.StatusUnauthorized, "invalid session id header")
+			WriteError(w, http.StatusUnauthorized, ErrInvalidSessionID.Error())
 			return
 		}
 
-		// if _, err := uuid.Parse(sessionID); err != nil {
-		// 	WriteError(w, http.StatusUnauthorized, "invalid session id header")
-		// 	return
-		// }
+		if _, err := uuid.Parse(sessionID); err != nil {
+			WriteError(w, http.StatusUnauthorized, ErrInvalidSessionID.Error())
+			return
+		}
 
 		accountID, authenticated := m.sessionPool.GetAccountID(sessionID)
 		if !authenticated {
-			WriteError(w, http.StatusUnauthorized, "invalid or expired session")
+			WriteError(w, http.StatusUnauthorized, ErrInvalidOrExpiredSession.Error())
 			return
 		}
 

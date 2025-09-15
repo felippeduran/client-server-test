@@ -64,6 +64,7 @@ func (a *HTTP) Run() {
 		Handler: mux,
 	}
 
+	log.Printf("Starting server on port %d", a.config.Port)
 	if err := a.server.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("Failed to start server: %v", err)
 	}

@@ -247,6 +247,34 @@ namespace Core.Tests
             Assert.That(playerState.Persistent.LevelProgression.CurrentLevel, Is.EqualTo(3));
         }
 
+        [Test]
+        public void TestEndCommand_Progress_ShouldNotExceedMaxLevel()
+        {
+            var playerState = new PlayerState
+            {
+                Persistent = new PersistentState
+                {
+                    LevelProgression = new LevelProgression
+                    {
+                        CurrentLevel = 2,
+                        Statistics = new SortedSet<LevelStats>(),
+                    },
+                },
+                Session = new SessionState { CurrentLevelId = 2 },
+            };
+
+            var configs = GetTestConfigs();
+
+            var command = new EndLevelCommand
+            {
+                Success = true,
+            };
+
+            command.Execute(playerState, configs);
+
+            Assert.That(playerState.Persistent.LevelProgression.CurrentLevel, Is.EqualTo(2));
+        }
+
         Configs GetTestConfigs()
         {
             return new Configs
@@ -254,6 +282,7 @@ namespace Core.Tests
                 Levels = new[]
                 {
                 new LevelConfig { },
+                new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 1, EnergyReward = 2 },
                 new LevelConfig { EnergyCost = 1, MaxRolls = 10, TargetNumber = 1, EnergyReward = 2 },
             },
             };
