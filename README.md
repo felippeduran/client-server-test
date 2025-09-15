@@ -27,7 +27,7 @@ The `Bootstrap.scene` and `Bootstrap.cs` are the entry points for the project. T
 
 The game can be run in two different modes: with or without a fake server. You can configure this in the `Bootstrap` game object inspector. The game also contains a simulated throttling feature to help with development and testing, and is configured in the same place.
 
-The project uses Unity 6000.0.26f1.
+The project uses Unity 6000.0.26f1 and Git LFS.
 
 For running the Golang server, refer to [Server Project](#server-project).
 
