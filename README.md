@@ -204,6 +204,7 @@ All endpoints return JSON responses with the following error format:
 
 Here's a small list of potential improvements for the project:
 
+* Use a seed mechanism to make gameplay determinist and avoid trusting the client for victory/loss and score.
 * Replay of queue commands in case of connectivity issues.
 * Better, more granular handling of specific errors, i.e., for "no energy" or "level not unlocked".
 * Add structured logging to server code.
